@@ -103,8 +103,8 @@ void Graphics::DrawFillPolygon(const Vec2 &pos, const std::vector<Vec2> &vertice
 
 void Graphics::DrawTexture(const Vec2 &pos, int width, int height, float rotation, Texture2D *texture)
 {
-	const Rectangle srcRect = {0, 0, texture->width, texture->height};
-	const Rectangle destRect = {pos.x - (width / 2), pos.y - (height / 2), width, height};
+	const Rectangle srcRect = {0, 0, (float)(texture->width), (float)(texture->height)};
+	const Rectangle destRect = {pos.x - (width / 2), pos.y - (height / 2), (float)width, (float)height};
 
 	const float rotation_deg = rotation * 57.2958F;
 

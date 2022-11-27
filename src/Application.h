@@ -12,9 +12,9 @@ private:
 	std::vector<RigidBody*> m_rigidBodies;
 
 	// Inputs
-	Vec2 m_pushForce = Vec2::Zero();
-	Vec2 m_mouseCursor = Vec2::Zero();
-	bool m_leftMouseButtonDown = false;
+	// Vec2 m_pushForce = Vec2::Zero();
+	// Vec2 m_mouseCursor = Vec2::Zero();
+	// bool m_leftMouseButtonDown = false;
 
 public:
 	Application() = default;

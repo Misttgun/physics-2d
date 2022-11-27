@@ -6,6 +6,8 @@ struct Shape;
 
 struct RigidBody
 {
+	bool isColliding = false;
+
 	// Linear motion
 	Vec2 position;
 	Vec2 velocity;
@@ -31,6 +33,8 @@ struct RigidBody
 
 	RigidBody(const Shape& shape_, float x, float y, float mass_);
 	~RigidBody();
+
+	bool IsStatic() const;
 
 	void AddForce(const Vec2& force);
 	void AddTorque(float torque);

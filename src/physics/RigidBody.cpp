@@ -2,6 +2,7 @@
 #include "Shape.h"
 
 #include <cassert>
+#include <math.h>
 
 RigidBody::RigidBody(const Shape& shape_, float x, float y, float mass_)
 {
@@ -19,17 +20,26 @@ RigidBody::RigidBody(const Shape& shape_, float x, float y, float mass_)
 	sumTorque = 0.0f;
 
 	mass = mass_;
-	assert(mass != 0.0f);
-	invMass = 1 / mass;
+	if (mass != 0.0f)
+		invMass = 1 / mass;
+	else
+		invMass = 0.0f;
 
 	inertia = shape->GetMomentOfInertia() * mass;
-	assert(inertia != 0.0f);
-	invInertia = 1 / inertia;
+	if (inertia != 0.0f)
+		invInertia = 1 / inertia;
+	else
+		invInertia = 0.0f;
 }
 
 RigidBody::~RigidBody()
 {
 	delete shape;
+}
+
+bool RigidBody::IsStatic() const
+{
+	return fabs(invMass - 0) < 0.005f;
 }
 
 void RigidBody::AddForce(const Vec2& force)
@@ -54,6 +64,9 @@ void RigidBody::ClearForces()
 
 void RigidBody::IntegrateLinear(const float dt)
 {
+	if (IsStatic())
+		return;
+
 	acceleration = sumForces * invMass;
 
 	velocity += (acceleration * dt);
@@ -64,6 +77,9 @@ void RigidBody::IntegrateLinear(const float dt)
 
 void RigidBody::IntegrateAngular(const float dt)
 {
+	if (IsStatic())
+		return;
+
 	angularAcceleration = sumTorque * invInertia;
 
 	angularVelocity += angularAcceleration * dt;
