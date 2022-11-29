@@ -28,6 +28,9 @@ struct RigidBody
 	float inertia;
 	float invInertia;
 
+	// Coefficient of restitution (elasticity)
+	float restitution;
+
 	// Pointer to shape
 	Shape* shape;
 
@@ -40,6 +43,8 @@ struct RigidBody
 	void AddTorque(float torque);
 	void ClearForces();
 	void ClearTorque();
+
+	void ApplyImpulse(const Vec2& impulse);
 
 	void IntegrateLinear(float dt);
 	void IntegrateAngular(float dt);

@@ -19,6 +19,8 @@ RigidBody::RigidBody(const Shape& shape_, float x, float y, float mass_)
 	sumForces = Vec2::Zero();
 	sumTorque = 0.0f;
 
+	restitution = 1.0f;
+
 	mass = mass_;
 	if (mass != 0.0f)
 		invMass = 1 / mass;
@@ -60,6 +62,14 @@ void RigidBody::ClearTorque()
 void RigidBody::ClearForces()
 {
 	sumForces = Vec2(0.0f, 0.0f);
+}
+
+void RigidBody::ApplyImpulse(const Vec2& impulse)
+{
+	if (IsStatic())
+		return;
+
+	velocity += impulse * invMass;
 }
 
 void RigidBody::IntegrateLinear(const float dt)

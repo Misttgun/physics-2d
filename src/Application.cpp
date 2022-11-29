@@ -17,13 +17,9 @@ void Application::Setup()
 	Graphics::OpenWindow();
 	SetTargetFPS(60);
 
-	const CircleShape bigBallShape(100);
-	RigidBody* bigBall = new RigidBody(bigBallShape, 100, 100, 1.0);
+	const CircleShape bigBallShape(200);
+	RigidBody* bigBall = new RigidBody(bigBallShape, Graphics::Width() / 2.0f, Graphics::Height() / 2.0f, 0.0);
 	m_rigidBodies.push_back(bigBall);
-
-	const CircleShape smallBallShape(50);
-	RigidBody* smallBall = new RigidBody(smallBallShape, 500, 100, 1.0);
-	m_rigidBodies.push_back(smallBall);
 }
 
 void Application::ProcessInput()
@@ -42,8 +38,12 @@ void Application::ProcessInput()
 	// if (IsKeyUp(KEY_LEFT) || IsKeyUp(KEY_RIGHT))
 	// 	m_pushForce.x = 0;
 
-	// if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && m_leftMouseButtonDown == false)
-	// 	m_leftMouseButtonDown = true;
+	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+	{
+		RigidBody* smallBall = new RigidBody(CircleShape(40), GetMouseX(), GetMouseY(), 1.0f);
+		smallBall->restitution = 0.9f;
+		m_rigidBodies.push_back(smallBall);
+	}
 
 	// if (IsMouseButtonUp(MOUSE_BUTTON_LEFT) && m_leftMouseButtonDown)
 	// {
@@ -133,6 +133,8 @@ void Application::Update()
 
 			if (CollisionDetection::IsColliding(a, b, contact))
 			{
+				contact.ResolveCollision();
+
 				a->isColliding = true;
 				b->isColliding = true;
 			}
@@ -148,11 +150,10 @@ void Application::Render()
 
 	for (const RigidBody* rigidBody : m_rigidBodies)
 	{
-		Color color = rigidBody->isColliding ? RED : WHITE;
 		if (rigidBody->shape->GetType() == CIRCLE)
 		{
 			const CircleShape* circleShape = dynamic_cast<CircleShape*>(rigidBody->shape);
-			Graphics::DrawCircle(rigidBody->position, circleShape->radius, rigidBody->rotation, color);
+			Graphics::DrawFillCircle(rigidBody->position, circleShape->radius, WHITE);
 		}
 		if (rigidBody->shape->GetType() == BOX)
 		{

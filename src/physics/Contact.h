@@ -18,6 +18,7 @@ struct Contact
     ~Contact() = default;
 
     void ResolvePenetration();
+    void ResolveCollision();
 };
 
 inline void Contact::ResolvePenetration()
@@ -30,4 +31,30 @@ inline void Contact::ResolvePenetration()
 
     a->position -= normal * da;
     b->position += normal * db;
+}
+
+inline void Contact::ResolveCollision()
+{
+    // Apply position correction using the projection method
+    ResolvePenetration();
+
+    // Define elasticity (coefficient of restitution e)
+    float e = std::min(a->restitution, b->restitution);
+
+    // Calculate the relative velocity between the two objects
+    const Vec2 vrel = (a->velocity - b->velocity);
+
+    // Calculate the relative velocity along the normal collision vector
+    float vrelDotNormal = vrel.Dot(normal);
+
+    // Now we proceed to calculate the collision impulse
+    const Vec2 impulseDirection = normal;
+    const float impulseMagnitude = -(1 + e) * vrelDotNormal / (a->invMass + b->invMass);
+
+    const Vec2 impulse = impulseDirection * impulseMagnitude;
+
+    // Apply the impulse vector to both objects in opposite direction
+    a->ApplyImpulse(impulse);
+    b->ApplyImpulse(-impulse);
+
 }
