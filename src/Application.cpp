@@ -17,9 +17,14 @@ void Application::Setup()
 	Graphics::OpenWindow();
 	SetTargetFPS(60);
 
-	const CircleShape bigBallShape(200);
-	RigidBody* bigBall = new RigidBody(bigBallShape, Graphics::Width() / 2.0f, Graphics::Height() / 2.0f, 0.0);
-	m_rigidBodies.push_back(bigBall);
+	RigidBody* boxA = new RigidBody(BoxShape(200, 200), Graphics::Width() / 2.0f, Graphics::Height() /2.0f, 1.0f);
+	boxA->angularVelocity = 0.4f;
+	
+	RigidBody* boxB = new RigidBody(BoxShape(200, 200), Graphics::Width() / 2.0f, Graphics::Height() /2.0f, 1.0f);
+	boxB->angularVelocity = 0.1f;
+
+	m_rigidBodies.push_back(boxA);
+	m_rigidBodies.push_back(boxB);
 }
 
 void Application::ProcessInput()
@@ -56,6 +61,9 @@ void Application::ProcessInput()
 
 	// m_mouseCursor.x = GetMouseX();
 	// m_mouseCursor.y = GetMouseY();
+
+	m_rigidBodies[0]->position.x = GetMouseX();
+	m_rigidBodies[0]->position.y = GetMouseY();
 }
 
 void Application::Update()
@@ -80,11 +88,11 @@ void Application::Update()
 
 		// rigidBody->AddTorque(200);
 
-		const Vec2 gravity = Vec2(0.0f, 9.8f * PIXELS_PER_METER * rigidBody->mass);
-		rigidBody->AddForce(gravity);
+		// const Vec2 gravity = Vec2(0.0f, 9.8f * PIXELS_PER_METER * rigidBody->mass);
+		// rigidBody->AddForce(gravity);
 
-		const Vec2 wind = Vec2(20.0f * PIXELS_PER_METER, 0.0f);
-		rigidBody->AddForce(wind);
+		// const Vec2 wind = Vec2(20.0f * PIXELS_PER_METER, 0.0f);
+		// rigidBody->AddForce(wind);
 
 		/*const Vec2 drag = Force::GenerateDrag(*rigidBody, 0.01f);
 		rigidBody->AddForce(drag);*/
@@ -133,7 +141,7 @@ void Application::Update()
 
 			if (CollisionDetection::IsColliding(a, b, contact))
 			{
-				contact.ResolveCollision();
+				//contact.ResolveCollision();
 
 				a->isColliding = true;
 				b->isColliding = true;
@@ -158,7 +166,7 @@ void Application::Render()
 		if (rigidBody->shape->GetType() == BOX)
 		{
 			const BoxShape* boxShape = dynamic_cast<BoxShape*>(rigidBody->shape);
-			Graphics::DrawPolygon(rigidBody->position, boxShape->worldVertices, WHITE);
+			Graphics::DrawPolygon(rigidBody->position, boxShape->worldVertices, rigidBody->isColliding ? RED : WHITE);
 		}
 	}
 

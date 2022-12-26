@@ -1,6 +1,8 @@
 ﻿#include "Shape.h"
 #include "Vec2.h"
 
+#include <limits>
+
 CircleShape::CircleShape(const float radius_)
 {
 	radius = radius_;
@@ -53,6 +55,49 @@ void PolygonShape::UpdateVertices(const Vec2& position, const float angle)
 		worldVertices[i] = localVertices[i].Rotate(angle);
 		worldVertices[i] += position;
 	}
+}
+
+Vec2 PolygonShape::EdgeAt(int index) const
+{
+	int currVertex = index;
+	int nextVertex = (index + 1) % worldVertices.size();
+	return worldVertices[nextVertex] - worldVertices[currVertex];
+}
+
+float PolygonShape::FindMinimumSeparation(const PolygonShape* other, Vec2& outAxis, Vec2& outPoint) const
+{
+    float seperation = std::numeric_limits<float>::lowest();
+
+    for (std::size_t i = 0; i < worldVertices.size(); i++)
+    {
+        const Vec2 va = worldVertices[i];
+		const Vec2 edge = EdgeAt(i);
+        const Vec2 normal = edge.Normal();
+
+        float minSep = std::numeric_limits<float>::max();
+		Vec2 minVertex;
+
+        for (std::size_t j = 0; j < other->worldVertices.size(); j++)
+        {
+            const Vec2 vb = other->worldVertices[j];
+            float proj = (vb - va).Dot(normal);
+
+			if(proj < minSep)
+			{
+				minSep = proj;
+				minVertex = vb;
+			}
+        }
+        
+		if(minSep > seperation)
+		{
+			seperation = minSep;
+			outAxis = edge;
+			outPoint = minVertex;
+		}
+    }
+    
+    return seperation;
 }
 
 BoxShape::BoxShape(const float width_, const float height_)

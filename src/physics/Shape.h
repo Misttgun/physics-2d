@@ -37,6 +37,8 @@ struct PolygonShape : public Shape
 	Shape* Clone() const override;
 	float GetMomentOfInertia() const override;
 	void UpdateVertices(const Vec2& position, float angle);
+	Vec2 EdgeAt(int index) const;
+	float FindMinimumSeparation(const PolygonShape* other, Vec2& outAxis, Vec2& outPoint) const;
 };
 
 struct BoxShape final : public PolygonShape
