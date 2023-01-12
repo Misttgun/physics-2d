@@ -17,14 +17,23 @@ void Application::Setup()
 	Graphics::OpenWindow();
 	SetTargetFPS(60);
 
-	RigidBody* boxA = new RigidBody(BoxShape(200, 200), Graphics::Width() / 2.0f, Graphics::Height() /2.0f, 1.0f);
-	boxA->angularVelocity = 0.4f;
-	
-	RigidBody* boxB = new RigidBody(BoxShape(200, 200), Graphics::Width() / 2.0f, Graphics::Height() /2.0f, 1.0f);
-	boxB->angularVelocity = 0.1f;
+	RigidBody* floor = new RigidBody(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2, Graphics::Height() - 50, 0.0f);
+	floor->restitution = 0.2f;
+	m_rigidBodies.push_back(floor);
 
-	m_rigidBodies.push_back(boxA);
-	m_rigidBodies.push_back(boxB);
+	RigidBody* leftWall = new RigidBody(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0);
+    leftWall->restitution = 0.2;
+	m_rigidBodies.push_back(leftWall);
+
+    RigidBody* rightWall = new RigidBody(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0);
+    rightWall->restitution = 0.2;
+	m_rigidBodies.push_back(rightWall);
+
+	RigidBody* bigBox = new RigidBody(BoxShape(200, 200), Graphics::Width() / 2.0f, Graphics::Height() /2.0f, 0.0f);
+	bigBox->rotation = 1.4f;
+	bigBox->restitution = 0.5f;
+
+	m_rigidBodies.push_back(bigBox);
 }
 
 void Application::ProcessInput()
@@ -45,9 +54,8 @@ void Application::ProcessInput()
 
 	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 	{
-		RigidBody* smallBall = new RigidBody(CircleShape(40), GetMouseX(), GetMouseY(), 1.0f);
-		smallBall->restitution = 0.9f;
-		m_rigidBodies.push_back(smallBall);
+		RigidBody* smallBox = new RigidBody(BoxShape(50, 50), GetMouseX(), GetMouseY(), 1.0f);
+		m_rigidBodies.push_back(smallBox);
 	}
 
 	// if (IsMouseButtonUp(MOUSE_BUTTON_LEFT) && m_leftMouseButtonDown)
@@ -62,24 +70,12 @@ void Application::ProcessInput()
 	// m_mouseCursor.x = GetMouseX();
 	// m_mouseCursor.y = GetMouseY();
 
-	m_rigidBodies[0]->position.x = GetMouseX();
-	m_rigidBodies[0]->position.y = GetMouseY();
+	// m_rigidBodies[0]->position.x = GetMouseX();
+	// m_rigidBodies[0]->position.y = GetMouseY();
 }
 
 void Application::Update()
 {
-	// static int time_prev_frame;
-	// const uint32_t curr_time = SDL_GetTicks();
-	// const int32_t time_to_wait = MILLISECS_PER_FRAME - (curr_time - time_prev_frame);
-	// if (time_to_wait > 0)
-	// 	SDL_Delay(time_to_wait);
-
-	// float dt = (curr_time - time_prev_frame) / 1000.0F;
-	// if (dt > 0.016f)
-	// 	dt = 0.016f;
-
-	// time_prev_frame = curr_time;
-
 	float dt = GetFrameTime();
 
 	for (RigidBody* rigidBody : m_rigidBodies)
@@ -88,8 +84,8 @@ void Application::Update()
 
 		// rigidBody->AddTorque(200);
 
-		// const Vec2 gravity = Vec2(0.0f, 9.8f * PIXELS_PER_METER * rigidBody->mass);
-		// rigidBody->AddForce(gravity);
+		const Vec2 gravity = Vec2(0.0f, 9.8f * PIXELS_PER_METER * rigidBody->mass);
+		rigidBody->AddForce(gravity);
 
 		// const Vec2 wind = Vec2(20.0f * PIXELS_PER_METER, 0.0f);
 		// rigidBody->AddForce(wind);
@@ -100,33 +96,6 @@ void Application::Update()
 		rigidBody->Update(dt);
 
 		rigidBody->isColliding = false;
-
-		if (rigidBody->shape->GetType() == CIRCLE)
-		{
-			const CircleShape* circleShape = dynamic_cast<CircleShape*>(rigidBody->shape);
-
-			if (rigidBody->position.y + circleShape->radius >= Graphics::Height())
-			{
-				rigidBody->position.y = Graphics::Height() - circleShape->radius;
-				rigidBody->velocity.y *= -0.8f;
-			}
-			else if (rigidBody->position.y - circleShape->radius <= 0)
-			{
-				rigidBody->position.y = circleShape->radius;
-				rigidBody->velocity.y *= -0.8f;
-			}
-
-			if (rigidBody->position.x + circleShape->radius >= Graphics::Width())
-			{
-				rigidBody->position.x = Graphics::Width() - circleShape->radius;
-				rigidBody->velocity.x *= -0.8f;
-			}
-			else if (rigidBody->position.x - circleShape->radius <= 0)
-			{
-				rigidBody->position.x = circleShape->radius;
-				rigidBody->velocity.x *= -0.8f;
-			}
-		}
 	}
 
 	// Check all the rigidbodies with the other rigidbodies for collision
@@ -141,7 +110,7 @@ void Application::Update()
 
 			if (CollisionDetection::IsColliding(a, b, contact))
 			{
-				//contact.ResolveCollision();
+				contact.ResolveCollision();
 
 				a->isColliding = true;
 				b->isColliding = true;
@@ -161,7 +130,7 @@ void Application::Render()
 		if (rigidBody->shape->GetType() == CIRCLE)
 		{
 			const CircleShape* circleShape = dynamic_cast<CircleShape*>(rigidBody->shape);
-			Graphics::DrawFillCircle(rigidBody->position, circleShape->radius, WHITE);
+			Graphics::DrawCircle(rigidBody->position, circleShape->radius, rigidBody->rotation, WHITE);
 		}
 		if (rigidBody->shape->GetType() == BOX)
 		{

@@ -20,6 +20,7 @@ RigidBody::RigidBody(const Shape& shape_, float x, float y, float mass_)
 	sumTorque = 0.0f;
 
 	restitution = 1.0f;
+	friction = 0.7f;
 
 	mass = mass_;
 	if (mass != 0.0f)
@@ -70,6 +71,15 @@ void RigidBody::ApplyImpulse(const Vec2& impulse)
 		return;
 
 	velocity += impulse * invMass;
+}
+
+void RigidBody::ApplyImpulse(const Vec2& impulse, const Vec2& r)
+{
+	if(IsStatic())
+		return;
+	
+	velocity += impulse * invMass;
+	angularVelocity += r.Cross(impulse) * invInertia;
 }
 
 void RigidBody::IntegrateLinear(const float dt)
