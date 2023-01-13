@@ -4,12 +4,12 @@
 
 #include "physics/Vec2.h"
 
-struct RigidBody;
+struct World;
 
 class Application
 {
 private:
-	std::vector<RigidBody*> m_rigidBodies;
+	World* m_world;
 	bool debug = false;
 
 public:
