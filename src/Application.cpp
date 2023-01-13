@@ -22,14 +22,14 @@ void Application::Setup()
 	m_rigidBodies.push_back(floor);
 
 	RigidBody* leftWall = new RigidBody(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0);
-    leftWall->restitution = 0.2;
+	leftWall->restitution = 0.2;
 	m_rigidBodies.push_back(leftWall);
 
-    RigidBody* rightWall = new RigidBody(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0);
-    rightWall->restitution = 0.2;
+	RigidBody* rightWall = new RigidBody(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0);
+	rightWall->restitution = 0.2;
 	m_rigidBodies.push_back(rightWall);
 
-	RigidBody* bigBox = new RigidBody(BoxShape(200, 200), Graphics::Width() / 2.0f, Graphics::Height() /2.0f, 0.0f);
+	RigidBody* bigBox = new RigidBody(BoxShape(200, 200), Graphics::Width() / 2.0f, Graphics::Height() / 2.0f, 0.0f);
 	bigBox->rotation = 1.4f;
 	bigBox->restitution = 0.5f;
 
@@ -38,14 +38,8 @@ void Application::Setup()
 
 void Application::ProcessInput()
 {
-	// if (IsKeyDown(KEY_UP))
-	// 	m_pushForce.y = -50 * PIXELS_PER_METER;
-	// if (IsKeyDown(KEY_DOWN))
-	// 	m_pushForce.y = 50 * PIXELS_PER_METER;
-	// if (IsKeyDown(KEY_LEFT))
-	// 	m_pushForce.x = -50 * PIXELS_PER_METER;
-	// if (IsKeyDown(KEY_RIGHT))
-	// 	m_pushForce.x = 50 * PIXELS_PER_METER;
+	if (IsKeyDown(KEY_D))
+		debug = !debug;
 
 	// if (IsKeyUp(KEY_UP) || IsKeyUp(KEY_DOWN))
 	// 	m_pushForce.y = 0;
@@ -54,8 +48,12 @@ void Application::ProcessInput()
 
 	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 	{
-		RigidBody* smallBox = new RigidBody(BoxShape(50, 50), GetMouseX(), GetMouseY(), 1.0f);
-		m_rigidBodies.push_back(smallBox);
+		std::vector<Vec2> vertices = {Vec2(20, 60), Vec2(-40, 20), Vec2(-20, -60), Vec2(20, -60), Vec2(40, 20)};
+
+		RigidBody* polygon = new RigidBody(PolygonShape(vertices), GetMouseX(), GetMouseY(), 1.0f);
+		polygon->restitution = 0.1f;
+		polygon->friction = 0.7f;
+		m_rigidBodies.push_back(polygon);
 	}
 
 	// if (IsMouseButtonUp(MOUSE_BUTTON_LEFT) && m_leftMouseButtonDown)
@@ -94,8 +92,6 @@ void Application::Update()
 		rigidBody->AddForce(drag);*/
 
 		rigidBody->Update(dt);
-
-		rigidBody->isColliding = false;
 	}
 
 	// Check all the rigidbodies with the other rigidbodies for collision
@@ -105,6 +101,8 @@ void Application::Update()
 		{
 			RigidBody* a = m_rigidBodies[i];
 			RigidBody* b = m_rigidBodies[j];
+			a->isColliding = false;
+			b->isColliding = false;
 
 			Contact contact;
 
@@ -112,8 +110,16 @@ void Application::Update()
 			{
 				contact.ResolveCollision();
 
-				a->isColliding = true;
-				b->isColliding = true;
+				// Draw debug information
+				if (debug)
+				{
+					Graphics::DrawFillCircle(contact.start, 3, PURPLE);
+					Graphics::DrawFillCircle(contact.end, 3, PURPLE);
+					Graphics::DrawLine(contact.start, contact.start + contact.normal * 15, PURPLE);
+
+					a->isColliding = true;
+					b->isColliding = true;
+				}
 			}
 		}
 	}
@@ -125,17 +131,24 @@ void Application::Render()
 
 	Graphics::ClearScreen(DARKGRAY);
 
-	for (const RigidBody* rigidBody : m_rigidBodies)
+	for (const RigidBody* body : m_rigidBodies)
 	{
-		if (rigidBody->shape->GetType() == CIRCLE)
+		if (body->shape->GetType() == CIRCLE)
 		{
-			const CircleShape* circleShape = dynamic_cast<CircleShape*>(rigidBody->shape);
-			Graphics::DrawCircle(rigidBody->position, circleShape->radius, rigidBody->rotation, WHITE);
+			const CircleShape* circleShape = dynamic_cast<CircleShape*>(body->shape);
+			Graphics::DrawCircle(body->position, circleShape->radius, body->rotation, body->isColliding ? RED : WHITE);
 		}
-		if (rigidBody->shape->GetType() == BOX)
+
+		if (body->shape->GetType() == BOX)
 		{
-			const BoxShape* boxShape = dynamic_cast<BoxShape*>(rigidBody->shape);
-			Graphics::DrawPolygon(rigidBody->position, boxShape->worldVertices, rigidBody->isColliding ? RED : WHITE);
+			const BoxShape* boxShape = dynamic_cast<BoxShape*>(body->shape);
+			Graphics::DrawPolygon(body->position, boxShape->worldVertices, body->isColliding ? RED : WHITE);
+		}
+
+		if (body->shape->GetType() == POLYGON)
+		{
+			const PolygonShape* polygonShape = dynamic_cast<PolygonShape*>(body->shape);
+			Graphics::DrawPolygon(body->position, polygonShape->worldVertices, body->isColliding ? RED : WHITE);
 		}
 	}
 

@@ -27,6 +27,12 @@ float CircleShape::GetMomentOfInertia() const
 
 PolygonShape::PolygonShape(const std::vector<Vec2> vertices_)
 {
+	// Initialize the vertices of the polygon shape
+    for (auto vertex: vertices_) 
+	{
+        localVertices.push_back(vertex);
+        worldVertices.push_back(vertex);
+    }
 }
 
 PolygonShape::~PolygonShape() = default;
@@ -43,7 +49,8 @@ Shape* PolygonShape::Clone() const
 
 float PolygonShape::GetMomentOfInertia() const
 {
-	return 0.0f;
+	// TODO: We need to compute the moment of inertia of the polygon correctly!!!
+    return 5000;
 }
 
 // Translate and rotate local vertices from local to world space
