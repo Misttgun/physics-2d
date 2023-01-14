@@ -29,8 +29,11 @@ inline void Contact::ResolvePenetration()
     float da = (depth / (a->invMass + b->invMass)) * a->invMass;
     float db = (depth / (a->invMass + b->invMass)) * b->invMass;
 
-    a->position -= normal * da;
-    b->position += normal * db;
+    a->position -= normal * da * 0.8f;
+    b->position += normal * db * 0.8f;
+
+    a->shape->UpdateVertices(a->position, a->rotation);
+    b->shape->UpdateVertices(b->position, b->rotation);
 }
 
 inline void Contact::ResolveCollision()

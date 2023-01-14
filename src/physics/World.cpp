@@ -51,7 +51,8 @@ void World::Update(float dt)
     for(auto body : m_bodies)
         body->Update(dt);
 
-    CheckCollisions();
+    for (std::size_t i = 0; i < 10; i++)    
+        CheckCollisions();
 }
 
 void World::CheckCollisions()

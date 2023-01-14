@@ -112,10 +112,5 @@ void RigidBody::Update(const float dt)
 {
 	IntegrateLinear(dt);
 	IntegrateAngular(dt);
-
-	if (shape->GetType() == BOX || shape->GetType() == POLYGON)
-	{
-		PolygonShape* polygonShape = dynamic_cast<PolygonShape*>(shape);
-		polygonShape->UpdateVertices(position, rotation);
-	}
+	shape->UpdateVertices(position, rotation);
 }

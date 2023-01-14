@@ -11,6 +11,7 @@ struct Shape
 	virtual ~Shape() = default;
 	virtual ShapeType GetType() const = 0;
 	virtual Shape* Clone() const = 0;
+	virtual void UpdateVertices(const Vec2& position, float angle);
 	virtual float GetMomentOfInertia() const = 0;
 };
 
@@ -22,6 +23,7 @@ struct CircleShape final : public Shape
 	~CircleShape() override;
 	ShapeType GetType() const override;
 	Shape* Clone() const override;
+	void UpdateVertices(const Vec2& position, float angle) override;
 	float GetMomentOfInertia() const override;
 };
 
@@ -36,7 +38,7 @@ struct PolygonShape : public Shape
 	ShapeType GetType() const override;
 	Shape* Clone() const override;
 	float GetMomentOfInertia() const override;
-	void UpdateVertices(const Vec2& position, float angle);
+	void UpdateVertices(const Vec2& position, float angle) override;
 	Vec2 EdgeAt(int index) const;
 	float FindMinimumSeparation(const PolygonShape* other, Vec2& outAxis, Vec2& outPoint) const;
 };
