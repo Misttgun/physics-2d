@@ -8,23 +8,20 @@ struct Vec2
 	Vec2();
 	Vec2(float x, float y);
 
-	~Vec2();
-
-	Vec2 Rotate(float angle) const;
-	float Magnitude() const;
-	float MagnitudeSquared() const;
+	[[nodiscard]] Vec2 Rotate(float angle) const;
+	[[nodiscard]] float Magnitude() const;
+	[[nodiscard]] float MagnitudeSquared() const;
 
 	Vec2& Normalize();
-	Vec2 Normalized() const;
-	Vec2 UnitVector() const;
-	Vec2 Normal() const;
+	[[nodiscard]] Vec2 Normalized() const;
+	[[nodiscard]] Vec2 UnitVector() const;
+	[[nodiscard]] Vec2 Perpendicular() const;
 
 	static Vec2 Zero();
 
-	float Dot(const Vec2& v) const;
-	float Cross(const Vec2& v) const;
+	[[nodiscard]] float Dot(const Vec2& v) const;
+	[[nodiscard]] float Cross(const Vec2& v) const;
 
-	Vec2& operator = (const Vec2& v);
 	bool operator == (const Vec2& v) const;
 	bool operator != (const Vec2& v) const;
 

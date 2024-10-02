@@ -1,14 +1,13 @@
 #include "Application.h"
 
 #include "Graphics.h"
-#include "physics/RigidBody.h"
 #include "physics/Constants.h"
 #include "physics/Force.h"
+#include "physics/RigidBody.h"
 #include "physics/Shape.h"
-#include "physics/CollisionDetection.h"
 #include "physics/World.h"
 
-bool Application::IsRunning() const
+bool Application::IsRunning()
 {
 	return WindowShouldClose() == false;
 }
@@ -16,25 +15,27 @@ bool Application::IsRunning() const
 void Application::Setup()
 {
 	Graphics::OpenWindow();
-	SetTargetFPS(60);
+	SetTargetFPS(FPS);
 
-	m_world = new World(-9.8);
+	m_world = std::make_unique<World>(-9.8f);
 
-	RigidBody* floor = new RigidBody(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2, Graphics::Height() - 50, 0.0f);
-	floor->restitution = 0.2f;
+	auto floor = RigidBody(BoxShape(Graphics::Width() - 50, 50), static_cast<float>(Graphics::Width()) / 2.0f, 
+		static_cast<float>(Graphics::Height()) - 50, 0.0f);
+	floor.m_restitution = 0.2f;
 	m_world->AddBody(floor);
 
-	RigidBody* leftWall = new RigidBody(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0);
-	leftWall->restitution = 0.2;
+	auto leftWall = RigidBody(BoxShape(50, Graphics::Height() - 100), 50, static_cast<float>(Graphics::Height()) / 2.0f - 25, 0.0);
+	leftWall.m_restitution = 0.2f;
 	m_world->AddBody(leftWall);
 
-	RigidBody* rightWall = new RigidBody(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0);
-	rightWall->restitution = 0.2;
+	auto rightWall = RigidBody(BoxShape(50, Graphics::Height() - 100), static_cast<float>(Graphics::Width()) - 50, 
+		static_cast<float>(Graphics::Height()) / 2.0f - 25, 0.0);
+	rightWall.m_restitution = 0.2f;
 	m_world->AddBody(rightWall);
 
-	RigidBody* bigBox = new RigidBody(BoxShape(200, 200), Graphics::Width() / 2.0f, Graphics::Height() / 2.0f, 0.0f);
-	bigBox->rotation = 1.4f;
-	bigBox->restitution = 0.5f;
+	auto bigBox = RigidBody(BoxShape(200, 200), static_cast<float>(Graphics::Width()) / 2.0f, static_cast<float>(Graphics::Height()) / 2.0f, 0.0f);
+	bigBox.m_rotation = 1.4f;
+	bigBox.m_restitution = 0.5f;
 
 	m_world->AddBody(bigBox);
 
@@ -45,7 +46,7 @@ void Application::Setup()
 void Application::ProcessInput()
 {
 	if (IsKeyDown(KEY_D))
-		debug = !debug;
+		m_debug = !m_debug;
 
 	// if (IsKeyUp(KEY_UP) || IsKeyUp(KEY_DOWN))
 	// 	m_pushForce.y = 0;
@@ -54,11 +55,17 @@ void Application::ProcessInput()
 
 	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 	{
-		std::vector<Vec2> vertices = { Vec2(20, 60), Vec2(-40, 20), Vec2(-20, -60), Vec2(20, -60), Vec2(40, 20) };
+		const std::vector<Vec2> vertices = {
+			Vec2(20, 60),
+			Vec2(-40, 20),
+			Vec2(-20, -60),
+			Vec2(20, -60),
+			Vec2(40, 20)
+		};
 
-		RigidBody* polygon = new RigidBody(PolygonShape(vertices), GetMouseX(), GetMouseY(), 1.0f);
-		polygon->restitution = 0.1f;
-		polygon->friction = 0.7f;
+		auto polygon = RigidBody(PolygonShape(vertices), static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY()), 1.0f);
+		polygon.m_restitution = 0.1f;
+		polygon.m_friction = 0.7f;
 		m_world->AddBody(polygon);
 	}
 
@@ -78,37 +85,37 @@ void Application::ProcessInput()
 	// m_rigidBodies[0]->position.y = GetMouseY();
 }
 
-void Application::Update()
+void Application::Update() const
 {
-	float dt = GetFrameTime();
+	const float dt = GetFrameTime();
 
 	m_world->Update(dt);
 }
 
-void Application::Render()
+void Application::Render() const
 {
 	BeginDrawing();
 
 	Graphics::ClearScreen(DARKGRAY);
 
-	for (const RigidBody* body : m_world->GetBodies())
+	for (const RigidBody& body : m_world->GetBodies())
 	{
-		if (body->shape->GetType() == CIRCLE)
+		if (body.m_shape->GetType() == CIRCLE)
 		{
-			const CircleShape* circleShape = dynamic_cast<CircleShape*>(body->shape);
-			Graphics::DrawCircle(body->position, circleShape->radius, body->rotation, body->isColliding ? RED : WHITE);
+			const CircleShape* circleShape = dynamic_cast<CircleShape*>(body.m_shape.get());
+			Graphics::DrawCircle(body.m_position, circleShape->m_radius, body.m_rotation, body.m_isColliding ? RED : WHITE);
 		}
 
-		if (body->shape->GetType() == BOX)
+		if (body.m_shape->GetType() == BOX)
 		{
-			const BoxShape* boxShape = dynamic_cast<BoxShape*>(body->shape);
-			Graphics::DrawPolygon(body->position, boxShape->worldVertices, body->isColliding ? RED : WHITE);
+			const BoxShape* boxShape = dynamic_cast<BoxShape*>(body.m_shape.get());
+			Graphics::DrawPolygon(body.m_position, boxShape->m_worldVertices, body.m_isColliding ? RED : WHITE);
 		}
 
-		if (body->shape->GetType() == POLYGON)
+		if (body.m_shape->GetType() == POLYGON)
 		{
-			const PolygonShape* polygonShape = dynamic_cast<PolygonShape*>(body->shape);
-			Graphics::DrawPolygon(body->position, polygonShape->worldVertices, body->isColliding ? RED : WHITE);
+			const PolygonShape* polygonShape = dynamic_cast<PolygonShape*>(body.m_shape.get());
+			Graphics::DrawPolygon(body.m_position, polygonShape->m_worldVertices, body.m_isColliding ? RED : WHITE);
 		}
 	}
 
@@ -117,7 +124,5 @@ void Application::Render()
 
 void Application::Destroy()
 {
-	delete m_world;
-
 	Graphics::CloseWindow();
 }

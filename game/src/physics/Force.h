@@ -16,10 +16,10 @@ inline Vec2 Force::GenerateDrag(const RigidBody& particle, const float k)
 {
 	Vec2 drag = Vec2::Zero();
 
-	if (particle.velocity.MagnitudeSquared() > 0)
+	if (particle.m_velocity.MagnitudeSquared() > 0)
 	{
-		const Vec2 direction = particle.velocity.Normalized() * -1.0f;
-		const float magnitude = k * particle.velocity.MagnitudeSquared();
+		const Vec2 direction = particle.m_velocity.Normalized() * -1.0f;
+		const float magnitude = k * particle.m_velocity.MagnitudeSquared();
 		drag = direction * magnitude;
 	}
 
@@ -30,7 +30,7 @@ inline Vec2 Force::GenerateFriction(const RigidBody& particle, const float k)
 {
 	Vec2 friction = Vec2::Zero();
 
-	const Vec2 direction = particle.velocity.UnitVector() * -1;
+	const Vec2 direction = particle.m_velocity.UnitVector() * -1;
 	const float magnitude = k;
 	friction = direction * magnitude;
 
@@ -43,20 +43,20 @@ inline Vec2 Force::GenerateFriction(const RigidBody& particle, const float k)
  */
 inline Vec2 Force::GenerateAttraction(const RigidBody& a, const RigidBody& b, float g)
 {
-	const Vec2 direction = b.position - a.position;
+	const Vec2 direction = b.m_position - a.m_position;
 	const Vec2 attraction_dir = direction.UnitVector();
 
 	float distance_squared = direction.MagnitudeSquared();
 	distance_squared = std::clamp(distance_squared, 5.0f, 100.0f);
 
-	const float attraction_magnitude = g * (a.mass * b.mass) / distance_squared;
+	const float attraction_magnitude = g * (a.m_mass * b.m_mass) / distance_squared;
 
 	return attraction_dir * attraction_magnitude;
 }
 
 inline Vec2 Force::GenerateSpring(const RigidBody& particle, const Vec2& anchor, const float rest_length, const float k)
 {
-	const Vec2 direction = particle.position - anchor;
+	const Vec2 direction = particle.m_position - anchor;
 	const float displacement = direction.Magnitude() - rest_length;
 	const Vec2 spring_direction = direction.UnitVector();
 	const float spring_magnitude = -k * displacement;

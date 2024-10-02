@@ -6,14 +6,14 @@ int main(int argc, char *[])
 
     app.Setup();
 
-    while (app.IsRunning()) 
+    while (Application::IsRunning()) 
     {
         app.ProcessInput();
         app.Update();
         app.Render();
     }
 
-    app.Destroy();
+    Application::Destroy();
 
     return 0;
 }

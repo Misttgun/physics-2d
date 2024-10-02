@@ -1,46 +1,54 @@
 #pragma once
 
+#include <memory>
+
+#include "Shape.h"
 #include "Vec2.h"
 
-struct Shape;
-
-struct RigidBody
+class RigidBody
 {
-	bool isColliding = false;
+public:
+	bool m_isColliding = false;
 
 	// Linear motion
-	Vec2 position;
-	Vec2 velocity;
-	Vec2 acceleration;
+	Vec2 m_position;
+	Vec2 m_velocity;
+	Vec2 m_acceleration;
 
 	// Angular motion
-	float rotation;
-	float angularVelocity;
-	float angularAcceleration;
+	float m_rotation;
+	float m_angularVelocity;
+	float m_angularAcceleration;
 
 	// Forces and Torque
-	Vec2 sumForces;
-	float sumTorque;
+	Vec2 m_sumForces;
+	float m_sumTorque;
 
 	// Mass and Moment of Inertia
-	float mass;
-	float invMass;
-	float inertia;
-	float invInertia;
+	float m_mass;
+	float m_invMass;
+	float m_inertia;
+	float m_invInertia;
 
 	// Coefficient of restitution (elasticity)
-	float restitution;
+	float m_restitution;
 
 	// Coefficient of friction
-	float friction;
+	float m_friction;
 
 	// Pointer to shape
-	Shape* shape;
+	std::unique_ptr<Shape> m_shape;
+	//Shape* m_shape;
 
-	RigidBody(const Shape& shape_, float x, float y, float mass_);
-	~RigidBody();
+	RigidBody(const Shape& shape, float x, float y, float mass);
+	RigidBody() = default;
+	~RigidBody() = default;
+	RigidBody(const RigidBody& rBody);
+	RigidBody& operator =(const RigidBody& rBody);
+	RigidBody(RigidBody&& rBody) = default;
+	RigidBody& operator = (RigidBody&& rBody) = default;
 
-	bool IsStatic() const;
+	[[nodiscard]] bool IsStatic() const;
 
 	void AddForce(const Vec2& force);
 	void AddTorque(float torque);

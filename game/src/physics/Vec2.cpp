@@ -4,10 +4,8 @@
 Vec2::Vec2() : x(0.0), y(0.0)
 {}
 
-Vec2::Vec2(float x, float y) : x(x), y(y)
+Vec2::Vec2(const float x, const float y) : x(x), y(y)
 {}
-
-Vec2::~Vec2() = default;
 
 Vec2 Vec2::Rotate(const float angle) const
 {
@@ -68,7 +66,7 @@ Vec2 Vec2::UnitVector() const
 	return result;
 }
 
-Vec2 Vec2::Normal() const
+Vec2 Vec2::Perpendicular() const
 {
 	return Vec2(y, -x).Normalize();
 }
@@ -88,11 +86,9 @@ float Vec2::Cross(const Vec2& v) const
 	return (x * v.y) - (y * v.x);
 }
 
-Vec2& Vec2::operator = (const Vec2& v) = default;
-
 bool Vec2::operator == (const Vec2& v) const
 {
-	return x == v.x && y == v.y;
+	return abs(x - v.x) < 0.001f && abs(y - v.y) < 0.001f;
 }
 
 bool Vec2::operator != (const Vec2& v) const
