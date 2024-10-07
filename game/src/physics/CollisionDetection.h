@@ -5,14 +5,17 @@
 
 struct Contact
 {
-    Vec2 start;
+	RigidBody* a;
+	RigidBody* b;
+
+	Vec2 start;
     Vec2 end;
 
     Vec2 normal;
     float depth;
 };
 
-inline bool IsCollidingCircleCircle(const RigidBody& a, const RigidBody& b, Contact& outContact)
+inline bool IsCollidingCircleCircle(RigidBody& a, RigidBody& b, Contact& outContact)
 {
 	const CircleShape* aCircleShape = dynamic_cast<CircleShape*>(a.m_shape.get());
 	const CircleShape* bCircleShape = dynamic_cast<CircleShape*>(b.m_shape.get());
@@ -25,6 +28,8 @@ inline bool IsCollidingCircleCircle(const RigidBody& a, const RigidBody& b, Cont
 	if (isColliding == false)
 		return false;
 
+	outContact.a = &a;
+	outContact.b = &b;
 	outContact.normal = ab.Normalized();
 	outContact.start = b.m_position - outContact.normal * bCircleShape->m_radius;
 	outContact.end = a.m_position + outContact.normal * aCircleShape->m_radius;
@@ -33,7 +38,7 @@ inline bool IsCollidingCircleCircle(const RigidBody& a, const RigidBody& b, Cont
 	return true;
 }
 
-inline bool IsCollidingPolygonPolygon(const RigidBody& a, const RigidBody& b, Contact& outContact)
+inline bool IsCollidingPolygonPolygon(RigidBody& a, RigidBody& b, Contact& outContact)
 {
 	const PolygonShape* aPolygonShape = dynamic_cast<PolygonShape*>(a.m_shape.get());
 	const PolygonShape* bPolygonShape = dynamic_cast<PolygonShape*>(b.m_shape.get());
@@ -42,6 +47,9 @@ inline bool IsCollidingPolygonPolygon(const RigidBody& a, const RigidBody& b, Co
 
 	const float abSeparation = aPolygonShape->FindMinimumSeparation(bPolygonShape, aAxis, aPoint);
 	const float baSeparation = bPolygonShape->FindMinimumSeparation(aPolygonShape, bAxis, bPoint);
+
+	outContact.a = &a;
+	outContact.b = &b;
 
 	if (abSeparation > baSeparation)
 	{
@@ -61,7 +69,7 @@ inline bool IsCollidingPolygonPolygon(const RigidBody& a, const RigidBody& b, Co
 	return abSeparation <= 0 && baSeparation <= 0;
 }
 
-inline bool IsCollidingPolygonCircle(const RigidBody& polygon, const RigidBody& circle, Contact& outContact)
+inline bool IsCollidingPolygonCircle(RigidBody& polygon, RigidBody& circle, Contact& outContact)
 {
 	const PolygonShape* polygonShape = dynamic_cast<PolygonShape*>(polygon.m_shape.get());
 	const CircleShape* circleShape = dynamic_cast<CircleShape*>(circle.m_shape.get());
@@ -93,17 +101,18 @@ inline bool IsCollidingPolygonCircle(const RigidBody& polygon, const RigidBody& 
 			isOutside = true;
 			break;
 		}
-		else
+
+		// Circle center is inside the polygon, find the min edge (the one with the least negative projection)
+		if (projection > distanceCircleEdge)
 		{
-			// Circle center is inside the polygon, find the min edge (the one with the least negative projection)
-			if (projection > distanceCircleEdge)
-			{
-				distanceCircleEdge = projection;
-				minCurrVertex = polygonVertices[currVertex];
-				minNextVertex = polygonVertices[nextVertex];
-			}
+			distanceCircleEdge = projection;
+			minCurrVertex = polygonVertices[currVertex];
+			minNextVertex = polygonVertices[nextVertex];
 		}
 	}
+
+	outContact.a = &polygon;
+	outContact.b = &circle;
 
 	if (isOutside)
 	{
@@ -115,11 +124,12 @@ inline bool IsCollidingPolygonCircle(const RigidBody& polygon, const RigidBody& 
 		if (v1.Dot(v2) < 0)
 		{
 			// Distance from vertex to circle center is greater than radius... no collision
-			if (v1.Magnitude() > circleShape->m_radius)
+			const float magnitude = v1.Magnitude();
+			if (magnitude > circleShape->m_radius)
 				return false;
 
 			// Detected collision in region A:
-			outContact.depth = circleShape->m_radius - v1.Magnitude();
+			outContact.depth = circleShape->m_radius - magnitude;
 			outContact.normal = v1.Normalize();
 			outContact.start = circle.m_position + (outContact.normal * -circleShape->m_radius);
 			outContact.end = outContact.start + (outContact.normal * outContact.depth);
@@ -134,11 +144,12 @@ inline bool IsCollidingPolygonCircle(const RigidBody& polygon, const RigidBody& 
 			if (v1.Dot(v2) < 0)
 			{
 				// Distance from vertex to circle center is greater than radius... no collision
-				if (v1.Magnitude() > circleShape->m_radius)
+				const float magnitude = v1.Magnitude();
+				if (magnitude > circleShape->m_radius)
 					return false;
 
 				// Detected collision in region B:
-				outContact.depth = circleShape->m_radius - v1.Magnitude();
+				outContact.depth = circleShape->m_radius - magnitude;
 				outContact.normal = v1.Normalize();
 				outContact.start = circle.m_position + (outContact.normal * -circleShape->m_radius);
 				outContact.end = outContact.start + (outContact.normal * outContact.depth);
@@ -172,7 +183,7 @@ inline bool IsCollidingPolygonCircle(const RigidBody& polygon, const RigidBody& 
 	return true;
 }
 
-inline bool IsColliding(const RigidBody& a, const RigidBody& b, Contact& outContact)
+inline bool IsColliding(RigidBody& a, RigidBody& b, Contact& outContact)
 {
 	const bool aIsCircle = a.m_shape->GetType() == CIRCLE;
 	const bool bIsCircle = b.m_shape->GetType() == CIRCLE;
@@ -196,56 +207,61 @@ inline bool IsColliding(const RigidBody& a, const RigidBody& b, Contact& outCont
 }
 
 
-inline void ResolvePenetration(RigidBody& a, RigidBody& b, const Contact& contact)
+inline void ResolvePenetration(const Contact& contact)
 {
-	if (a.IsStatic() && b.IsStatic())
+	const auto a = contact.a;
+	const auto b = contact.b;
+
+	if (a->IsStatic() && b->IsStatic())
 		return;
 
-	const float da = (contact.depth / (a.m_invMass + b.m_invMass)) * a.m_invMass;
-	const float db = (contact.depth / (a.m_invMass + b.m_invMass)) * b.m_invMass;
+	const float da = (contact.depth / (a->m_invMass + b->m_invMass)) * a->m_invMass;
+	const float db = (contact.depth / (a->m_invMass + b->m_invMass)) * b->m_invMass;
 
-	a.m_position -= contact.normal * da * 0.8f;
-	b.m_position += contact.normal * db * 0.8f;
+	a->m_position -= contact.normal * da * 0.8f;
+	b->m_position += contact.normal * db * 0.8f;
 
-	a.m_shape->UpdateVertices(a.m_position, a.m_rotation);
-	b.m_shape->UpdateVertices(b.m_position, b.m_rotation);
+	a->m_shape->UpdateVertices(a->m_position, a->m_rotation);
+	b->m_shape->UpdateVertices(b->m_position, b->m_rotation);
 }
 
-inline void ResolveCollision(RigidBody& a, RigidBody& b, const Contact& contact)
+inline void ResolveCollision(const Contact& contact)
 {
+	const auto a = contact.a;
+	const auto b = contact.b;
+
 	// Apply position correction using the projection method
-	ResolvePenetration(a, b, contact);
+	ResolvePenetration(contact);
 
 	// Define elasticity (coefficient of restitution e) and friction
-	const float e = std::min(a.m_restitution, b.m_restitution);
-	const float f = std::min(a.m_friction, b.m_friction);
+	const float e = std::min(a->m_restitution, b->m_restitution);
+	const float f = std::min(a->m_friction, b->m_friction);
 
 	// Calculate the relative velocity between the two objects
-	const Vec2 ra = contact.end - a.m_position;
-	const Vec2 rb = contact.start - b.m_position;
-	const Vec2 va = a.m_velocity + Vec2(-a.m_angularVelocity * ra.y, a.m_angularVelocity * ra.x);
-	const Vec2 vb = b.m_velocity + Vec2(-b.m_angularVelocity * rb.y, b.m_angularVelocity * rb.x);
+	const Vec2 ra = contact.end - a->m_position;
+	const Vec2 rb = contact.start - b->m_position;
+	const Vec2 va = a->m_velocity + Vec2(-a->m_angularVelocity * ra.y, a->m_angularVelocity * ra.x);
+	const Vec2 vb = b->m_velocity + Vec2(-b->m_angularVelocity * rb.y, b->m_angularVelocity * rb.x);
 	const Vec2 vRel = va - vb;
 
 	// Now we proceed to calculate the collision impulse along the normal
-	const float vRelDotNormal = vRel.Dot(contact.normal);
-	const Vec2 impulseDirectionN = contact.normal;
+	const Vec2 normal = contact.normal;
+	const float vRelDotNormal = vRel.Dot(normal);
 	const float impulseMagnitudeN = -(1 + e) * vRelDotNormal / 
-		((a.m_invMass + b.m_invMass) + ra.Cross(contact.normal) * ra.Cross(contact.normal) * a.m_invInertia + rb.Cross(contact.normal) * rb.Cross(contact.normal) * b.m_invInertia);
-	const Vec2 impulseN = impulseDirectionN * impulseMagnitudeN;
+		((a->m_invMass + b->m_invMass) + ra.Cross(normal) * ra.Cross(normal) * a->m_invInertia + rb.Cross(normal) * rb.Cross(normal) * b->m_invInertia);
+	const Vec2 impulseN = normal * impulseMagnitudeN;
 
 	// Now we proceed to calculate the collision impulse along the tangent
 	const Vec2 tangent = contact.normal.Perpendicular();
 	const float vRelDotTangent = vRel.Dot(tangent);
-	const Vec2 impulseDirectionT = tangent;
 	const float impulseMagnitudeT = f * -(1 + e) * vRelDotTangent / 
-		((a.m_invMass + b.m_invMass) + ra.Cross(tangent) * ra.Cross(tangent) * a.m_invInertia + rb.Cross(tangent) * rb.Cross(tangent) * b.m_invInertia);
-	const Vec2 impulseT = impulseDirectionT * impulseMagnitudeT;
+		((a->m_invMass + b->m_invMass) + ra.Cross(tangent) * ra.Cross(tangent) * a->m_invInertia + rb.Cross(tangent) * rb.Cross(tangent) * b->m_invInertia);
+	const Vec2 impulseT = tangent * impulseMagnitudeT;
 
 	// Calculate the final impulse combining normal and tangent impulses
 	const Vec2 impulse = impulseN + impulseT;
 
 	// Apply the impulse vector to both objects in opposite direction
-	a.ApplyImpulse(impulse, ra);
-	b.ApplyImpulse(-impulse, rb);
+	a->ApplyImpulse(impulse, ra);
+	b->ApplyImpulse(-impulse, rb);
 }

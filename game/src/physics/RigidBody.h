@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include "Shape.h"
 #include "Vec2.h"
@@ -38,7 +39,8 @@ public:
 
 	// Pointer to shape
 	std::unique_ptr<Shape> m_shape;
-	//Shape* m_shape;
+
+	std::string m_textureId;
 
 	RigidBody(const Shape& shape, float x, float y, float mass);
 	RigidBody() = default;
@@ -62,4 +64,6 @@ public:
 	void IntegrateAngular(float dt);
 
 	void Update(float dt);
+
+	void SetTexture(const std::string& textureId);
 };

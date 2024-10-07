@@ -22,6 +22,6 @@ public:
 	static void DrawRect(const Vec2& pos, int width, int height, const Color& color);
 	static void DrawFillRect(const Vec2& pos, int width, int height, const Color& color);
 	static void DrawPolygon(const Vec2& pos, const std::vector<Vec2>& vertices, const Color& color);
-	static void DrawFillPolygon(const Vec2& pos, const std::vector<Vec2>& vertices, const Color& color);
-	static void DrawTexture(const Vec2& pos, float width, float height, float rotation, const Texture2D* texture);
+	static void DrawFillPolygon(const Vec2& center, const std::vector<Vec2>& vertices, const Color& color);
+	static void DrawTexture(const Vec2& pos, float width, float height, float rotation, const Texture2D& texture);
 };

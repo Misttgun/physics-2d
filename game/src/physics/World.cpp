@@ -51,6 +51,8 @@ void World::Update(const float dt)
 
 void World::CheckCollisions()
 {
+    Contact contact;
+
     // Check all the rigid bodies with the other rigid bodies for collision
 	for (std::size_t i = 0; i < m_bodies.size() - 1; i++)
 	{
@@ -61,11 +63,9 @@ void World::CheckCollisions()
 			a.m_isColliding = false;
 			b.m_isColliding = false;
 
-			Contact contact;
-
 			if (IsColliding(a, b, contact))
 			{
-                ResolveCollision(a, b, contact);
+                ResolveCollision(contact);
 			}
 		}
 	}

@@ -58,6 +58,8 @@ RigidBody::RigidBody(const RigidBody& rBody)
 
 	m_inertia = rBody.m_inertia;
 	m_invInertia = rBody.m_invInertia;
+
+	m_textureId = rBody.m_textureId;
 }
 
 RigidBody& RigidBody::operator=(const RigidBody& rBody)
@@ -84,6 +86,8 @@ RigidBody& RigidBody::operator=(const RigidBody& rBody)
 
 	m_inertia = rBody.m_inertia;
 	m_invInertia = rBody.m_invInertia;
+
+	m_textureId = rBody.m_textureId;
 
 	return *this;
 }
@@ -123,9 +127,9 @@ void RigidBody::ApplyImpulse(const Vec2& impulse)
 
 void RigidBody::ApplyImpulse(const Vec2& impulse, const Vec2& r)
 {
-	if(IsStatic())
+	if (IsStatic())
 		return;
-	
+
 	m_velocity += impulse * m_invMass;
 	m_angularVelocity += r.Cross(impulse) * m_invInertia;
 }
@@ -161,4 +165,9 @@ void RigidBody::Update(const float dt)
 	IntegrateLinear(dt);
 	IntegrateAngular(dt);
 	m_shape->UpdateVertices(m_position, m_rotation);
+}
+
+void RigidBody::SetTexture(const std::string& textureId)
+{
+	m_textureId = textureId;
 }

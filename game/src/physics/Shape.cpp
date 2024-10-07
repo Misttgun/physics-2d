@@ -19,9 +19,7 @@ std::unique_ptr<Shape> CircleShape::Clone() const
 }
 
 void CircleShape::UpdateVertices(const Vec2& position, float angle)
-{
-	return;
-}
+{}
 
 float CircleShape::GetMomentOfInertia() const
 {
