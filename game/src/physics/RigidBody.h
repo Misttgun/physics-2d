@@ -9,8 +9,7 @@
 class RigidBody
 {
 public:
-	bool m_isColliding = false;
-
+	
 	// Linear motion
 	Vec2 m_position;
 	Vec2 m_velocity;
@@ -42,13 +41,9 @@ public:
 
 	std::string m_textureId;
 
-	RigidBody(const Shape& shape, float x, float y, float mass);
-	RigidBody() = default;
-	~RigidBody() = default;
-	RigidBody(const RigidBody& rBody);
-	RigidBody& operator =(const RigidBody& rBody);
-	RigidBody(RigidBody&& rBody) = default;
-	RigidBody& operator = (RigidBody&& rBody) = default;
+	bool m_isColliding = false;
+
+	RigidBody(const Shape& shape, int x, int y, float mass);
 
 	[[nodiscard]] bool IsStatic() const;
 

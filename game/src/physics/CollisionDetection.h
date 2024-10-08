@@ -5,8 +5,8 @@
 
 struct Contact
 {
-	RigidBody* a;
-	RigidBody* b;
+	std::shared_ptr<RigidBody> a;
+	std::shared_ptr<RigidBody> b;
 
 	Vec2 start;
     Vec2 end;
@@ -15,12 +15,12 @@ struct Contact
     float depth;
 };
 
-inline bool IsCollidingCircleCircle(RigidBody& a, RigidBody& b, Contact& outContact)
+inline bool IsCollidingCircleCircle(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, Contact& outContact)
 {
-	const CircleShape* aCircleShape = dynamic_cast<CircleShape*>(a.m_shape.get());
-	const CircleShape* bCircleShape = dynamic_cast<CircleShape*>(b.m_shape.get());
+	const CircleShape* aCircleShape = dynamic_cast<CircleShape*>(a->m_shape.get());
+	const CircleShape* bCircleShape = dynamic_cast<CircleShape*>(b->m_shape.get());
 
-	const Vec2 ab = b.m_position - a.m_position;
+	const Vec2 ab = b->m_position - a->m_position;
 	const float radiusSum = aCircleShape->m_radius + bCircleShape->m_radius;
 
 	const bool isColliding = ab.MagnitudeSquared() <= (radiusSum * radiusSum);
@@ -28,28 +28,28 @@ inline bool IsCollidingCircleCircle(RigidBody& a, RigidBody& b, Contact& outCont
 	if (isColliding == false)
 		return false;
 
-	outContact.a = &a;
-	outContact.b = &b;
+	outContact.a = a;
+	outContact.b = b;
 	outContact.normal = ab.Normalized();
-	outContact.start = b.m_position - outContact.normal * bCircleShape->m_radius;
-	outContact.end = a.m_position + outContact.normal * aCircleShape->m_radius;
+	outContact.start = b->m_position - outContact.normal * bCircleShape->m_radius;
+	outContact.end = a->m_position + outContact.normal * aCircleShape->m_radius;
 	outContact.depth = (outContact.end - outContact.start).Magnitude();
 
 	return true;
 }
 
-inline bool IsCollidingPolygonPolygon(RigidBody& a, RigidBody& b, Contact& outContact)
+inline bool IsCollidingPolygonPolygon(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, Contact& outContact)
 {
-	const PolygonShape* aPolygonShape = dynamic_cast<PolygonShape*>(a.m_shape.get());
-	const PolygonShape* bPolygonShape = dynamic_cast<PolygonShape*>(b.m_shape.get());
+	const PolygonShape* aPolygonShape = dynamic_cast<PolygonShape*>(a->m_shape.get());
+	const PolygonShape* bPolygonShape = dynamic_cast<PolygonShape*>(b->m_shape.get());
 
 	Vec2 aAxis, bAxis, aPoint, bPoint;
 
 	const float abSeparation = aPolygonShape->FindMinimumSeparation(bPolygonShape, aAxis, aPoint);
 	const float baSeparation = bPolygonShape->FindMinimumSeparation(aPolygonShape, bAxis, bPoint);
 
-	outContact.a = &a;
-	outContact.b = &b;
+	outContact.a = a;
+	outContact.b = b;
 
 	if (abSeparation > baSeparation)
 	{
@@ -69,10 +69,10 @@ inline bool IsCollidingPolygonPolygon(RigidBody& a, RigidBody& b, Contact& outCo
 	return abSeparation <= 0 && baSeparation <= 0;
 }
 
-inline bool IsCollidingPolygonCircle(RigidBody& polygon, RigidBody& circle, Contact& outContact)
+inline bool IsCollidingPolygonCircle(const std::shared_ptr<RigidBody>& polygon, const std::shared_ptr<RigidBody>& circle, Contact& outContact)
 {
-	const PolygonShape* polygonShape = dynamic_cast<PolygonShape*>(polygon.m_shape.get());
-	const CircleShape* circleShape = dynamic_cast<CircleShape*>(circle.m_shape.get());
+	const PolygonShape* polygonShape = dynamic_cast<PolygonShape*>(polygon->m_shape.get());
+	const CircleShape* circleShape = dynamic_cast<CircleShape*>(circle->m_shape.get());
 	const std::vector<Vec2>& polygonVertices = polygonShape->m_worldVertices;
 
 	bool isOutside = false;
@@ -88,7 +88,7 @@ inline bool IsCollidingPolygonCircle(RigidBody& polygon, RigidBody& circle, Cont
 		Vec2 normal = edge.Perpendicular();
 
 		// Compare the circle center with the polygon vertex
-		Vec2 circleCenter = circle.m_position - polygonVertices[currVertex];
+		Vec2 circleCenter = circle->m_position - polygonVertices[currVertex];
 		const float projection = circleCenter.Dot(normal);
 
 		// If we found a dot product projection that is in the positive side of the normal
@@ -111,15 +111,15 @@ inline bool IsCollidingPolygonCircle(RigidBody& polygon, RigidBody& circle, Cont
 		}
 	}
 
-	outContact.a = &polygon;
-	outContact.b = &circle;
+	outContact.a = polygon;
+	outContact.b = circle;
 
 	if (isOutside)
 	{
 		///////////////////////////////////////
 		// Check if we are inside region A:
 		///////////////////////////////////////
-		Vec2 v1 = circle.m_position - minCurrVertex; // vector from the nearest vertex to the circle center
+		Vec2 v1 = circle->m_position - minCurrVertex; // vector from the nearest vertex to the circle center
 		Vec2 v2 = minNextVertex - minCurrVertex; // the nearest edge (from curr vertex to next vertex)
 		if (v1.Dot(v2) < 0)
 		{
@@ -131,7 +131,7 @@ inline bool IsCollidingPolygonCircle(RigidBody& polygon, RigidBody& circle, Cont
 			// Detected collision in region A:
 			outContact.depth = circleShape->m_radius - magnitude;
 			outContact.normal = v1.Normalize();
-			outContact.start = circle.m_position + (outContact.normal * -circleShape->m_radius);
+			outContact.start = circle->m_position + (outContact.normal * -circleShape->m_radius);
 			outContact.end = outContact.start + (outContact.normal * outContact.depth);
 		}
 		else
@@ -139,7 +139,7 @@ inline bool IsCollidingPolygonCircle(RigidBody& polygon, RigidBody& circle, Cont
 			///////////////////////////////////////
 			// Check if we are inside region B:
 			///////////////////////////////////////
-			v1 = circle.m_position - minNextVertex; // vector from the next nearest vertex to the circle center
+			v1 = circle->m_position - minNextVertex; // vector from the next nearest vertex to the circle center
 			v2 = minCurrVertex - minNextVertex; // the nearest edge
 			if (v1.Dot(v2) < 0)
 			{
@@ -151,7 +151,7 @@ inline bool IsCollidingPolygonCircle(RigidBody& polygon, RigidBody& circle, Cont
 				// Detected collision in region B:
 				outContact.depth = circleShape->m_radius - magnitude;
 				outContact.normal = v1.Normalize();
-				outContact.start = circle.m_position + (outContact.normal * -circleShape->m_radius);
+				outContact.start = circle->m_position + (outContact.normal * -circleShape->m_radius);
 				outContact.end = outContact.start + (outContact.normal * outContact.depth);
 			}
 			else
@@ -166,7 +166,7 @@ inline bool IsCollidingPolygonCircle(RigidBody& polygon, RigidBody& circle, Cont
 				// Detected collision in region C:
 				outContact.depth = circleShape->m_radius - distanceCircleEdge;
 				outContact.normal = (minNextVertex - minCurrVertex).Perpendicular();
-				outContact.start = circle.m_position - (outContact.normal * circleShape->m_radius);
+				outContact.start = circle->m_position - (outContact.normal * circleShape->m_radius);
 				outContact.end = outContact.start + (outContact.normal * outContact.depth);
 			}
 		}
@@ -176,20 +176,20 @@ inline bool IsCollidingPolygonCircle(RigidBody& polygon, RigidBody& circle, Cont
 		// The center of circle is inside the polygon... it is definitely colliding!
 		outContact.depth = circleShape->m_radius - distanceCircleEdge;
 		outContact.normal = (minNextVertex - minCurrVertex).Perpendicular();
-		outContact.start = circle.m_position - (outContact.normal * circleShape->m_radius);
+		outContact.start = circle->m_position - (outContact.normal * circleShape->m_radius);
 		outContact.end = outContact.start + (outContact.normal * outContact.depth);
 	}
 
 	return true;
 }
 
-inline bool IsColliding(RigidBody& a, RigidBody& b, Contact& outContact)
+inline bool IsColliding(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, Contact& outContact)
 {
-	const bool aIsCircle = a.m_shape->GetType() == CIRCLE;
-	const bool bIsCircle = b.m_shape->GetType() == CIRCLE;
+	const bool aIsCircle = a->m_shape->GetType() == CIRCLE;
+	const bool bIsCircle = b->m_shape->GetType() == CIRCLE;
 
-	const bool aIsPolygon = a.m_shape->GetType() == POLYGON || a.m_shape->GetType() == BOX;
-	const bool bIsPolygon = b.m_shape->GetType() == POLYGON || b.m_shape->GetType() == BOX;
+	const bool aIsPolygon = a->m_shape->GetType() == POLYGON || a->m_shape->GetType() == BOX;
+	const bool bIsPolygon = b->m_shape->GetType() == POLYGON || b->m_shape->GetType() == BOX;
 
 	if (aIsCircle && bIsCircle)
 		return IsCollidingCircleCircle(a, b, outContact);

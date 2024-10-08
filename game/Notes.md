@@ -29,3 +29,6 @@
 - We apply linear and angular impulse at the point of contact.
 - We calculate the impulse along the normal and tangent.
 - We then combine those two impulses and apply them to the rigid bodies in opposite directions.
+
+## Constraints
+- 

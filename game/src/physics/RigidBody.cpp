@@ -3,10 +3,10 @@
 
 #include <cmath>
 
-RigidBody::RigidBody(const Shape& shape, const float x, const float y, const float mass)
+RigidBody::RigidBody(const Shape& shape, const int x, const int y, const float mass)
 {
 	m_shape = shape.Clone();
-	m_position = Vec2(x, y);
+	m_position = Vec2(static_cast<float>(x), static_cast<float>(y));
 
 	m_velocity = Vec2::Zero();
 	m_acceleration = Vec2::Zero();
@@ -32,64 +32,6 @@ RigidBody::RigidBody(const Shape& shape, const float x, const float y, const flo
 		m_invInertia = 1 / m_inertia;
 	else
 		m_invInertia = 0.0f;
-}
-
-RigidBody::RigidBody(const RigidBody& rBody)
-{
-	m_shape = rBody.m_shape->Clone();
-
-	m_position = rBody.m_position;
-
-	m_velocity = rBody.m_velocity;
-	m_acceleration = rBody.m_acceleration;
-
-	m_rotation = rBody.m_rotation;
-	m_angularAcceleration = rBody.m_angularAcceleration;
-	m_angularVelocity = rBody.m_angularVelocity;
-
-	m_sumForces = rBody.m_sumForces;
-	m_sumTorque = rBody.m_sumTorque;
-
-	m_restitution = rBody.m_restitution;
-	m_friction = rBody.m_friction;
-
-	m_mass = rBody.m_mass;
-	m_invMass = rBody.m_invMass;
-
-	m_inertia = rBody.m_inertia;
-	m_invInertia = rBody.m_invInertia;
-
-	m_textureId = rBody.m_textureId;
-}
-
-RigidBody& RigidBody::operator=(const RigidBody& rBody)
-{
-	m_shape = rBody.m_shape->Clone();
-
-	m_position = rBody.m_position;
-
-	m_velocity = rBody.m_velocity;
-	m_acceleration = rBody.m_acceleration;
-
-	m_rotation = rBody.m_rotation;
-	m_angularAcceleration = rBody.m_angularAcceleration;
-	m_angularVelocity = rBody.m_angularVelocity;
-
-	m_sumForces = rBody.m_sumForces;
-	m_sumTorque = rBody.m_sumTorque;
-
-	m_restitution = rBody.m_restitution;
-	m_friction = rBody.m_friction;
-
-	m_mass = rBody.m_mass;
-	m_invMass = rBody.m_invMass;
-
-	m_inertia = rBody.m_inertia;
-	m_invInertia = rBody.m_invInertia;
-
-	m_textureId = rBody.m_textureId;
-
-	return *this;
 }
 
 bool RigidBody::IsStatic() const

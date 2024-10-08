@@ -8,12 +8,12 @@ World::World(const float gravity)
     m_gravity = -gravity;
 }
 
-void World::AddBody(const RigidBody& body)
+void World::AddBody(const std::shared_ptr<RigidBody>& body)
 {
     m_bodies.push_back(body);
 }
 
-std::vector<RigidBody>& World::GetBodies()
+std::vector<std::shared_ptr<RigidBody>>& World::GetBodies()
 {
     return m_bodies;
 }
@@ -28,28 +28,29 @@ void World::AddTorque(const float torque)
     m_torques.emplace_back(torque);
 }
 
-void World::Update(const float dt)
+void World::Update(const float dt) const
 {
-    for (auto& body : m_bodies)
+    for (const auto& body : m_bodies)
     {
-        const Vec2 weight = Vec2(0.0f, m_gravity * PIXELS_PER_METER * body.m_mass);
-        body.AddForce(weight);
+        const Vec2 weight = Vec2(0.0f, m_gravity * PIXELS_PER_METER * body->m_mass);
+        body->AddForce(weight);
 
         for(const auto &force : m_forces)
-            body.AddForce(force);
+            body->AddForce(force);
 
         for(const auto torque : m_torques)
-            body.AddTorque(torque);
+            body->AddTorque(torque);
     }
 
-    for(auto& body : m_bodies)
-        body.Update(dt);
+    for(const auto& body : m_bodies)
+    {
+	    body->Update(dt);
+    }
 
-    for (std::size_t i = 0; i < 10; i++)    
-        CheckCollisions();
+	CheckCollisions();
 }
 
-void World::CheckCollisions()
+void World::CheckCollisions() const
 {
     Contact contact;
 
@@ -58,10 +59,10 @@ void World::CheckCollisions()
 	{
 		for (std::size_t j = i + 1; j < m_bodies.size(); j++)
 		{
-			RigidBody& a = m_bodies[i];
-			RigidBody& b = m_bodies[j];
-			a.m_isColliding = false;
-			b.m_isColliding = false;
+			const auto a = m_bodies[i];
+			const auto b = m_bodies[j];
+			a->m_isColliding = false;
+			b->m_isColliding = false;
 
 			if (IsColliding(a, b, contact))
 			{
