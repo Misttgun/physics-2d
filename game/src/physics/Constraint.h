@@ -29,17 +29,31 @@ struct Constraint
 	virtual void PreSolve(float dt) {}
 	virtual void Solve() {}
 	virtual void PostSolve() {}
+
+protected:
+	MatMN jacobian;
+	VecN cachedLambda;
+	float bias;
 };
 
 struct JointConstraint final : Constraint
 {
-private:
-	MatMN jacobian;
-	VecN cachedLambda;
-	float bias;
-
 public:
 	JointConstraint(const std::shared_ptr<RigidBody>& aRb, const std::shared_ptr<RigidBody>& bRb, const Vec2& anchorPoint);
+	void PreSolve(float dt) override;
+	void Solve() override;
+	void PostSolve() override;
+};
+
+struct PenetrationConstraint final : Constraint
+{
+private:
+	Vec2 normal;
+	float friction;
+
+public:
+	PenetrationConstraint(const std::shared_ptr<RigidBody>& aRb, const std::shared_ptr<RigidBody>& bRb, const Vec2& aCollisionPoint,
+	                      const Vec2& bCollisionPoint, const Vec2& collisionNormal);
 	void PreSolve(float dt) override;
 	void Solve() override;
 	void PostSolve() override;

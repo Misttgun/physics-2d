@@ -40,8 +40,6 @@ public:
 
 	std::string m_textureId;
 
-	bool m_isColliding = false;
-
 	RigidBody(const Shape& shape, int x, int y, float mass);
 
 	[[nodiscard]] bool IsStatic() const;

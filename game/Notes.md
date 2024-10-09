@@ -14,7 +14,6 @@
 - During the collision detection, we store the collision information in Collision Contact for collision resolution.
 - Contact info stores the start, end, normal vector and penetration depth.
 - For polygon to polygon collision detection, we use SAT (Separating Axis Theorem).
-- 
 
 ### SAT Implementation
 - We find the normal for each edge of polygon A
@@ -24,13 +23,23 @@
 - If the **separation** value is positive, we have **no** overlap
 - If the **separation** value is negative, we have an overlap
 
-## Collision Resolution
-- We are using the impulse method for collision resolution.
-- We apply linear and angular impulse at the point of contact.
-- We calculate the impulse along the normal and tangent.
-- We then combine those two impulses and apply them to the rigid bodies in opposite directions.
-
 ## Constraints
 - We have two type of constraints (Joint constraint and Penetration constraint).
-- To solve the Joint constraint, we calculate the Jacobian matrix and use the Gauss-Seidel to solve our system of action to get the lambda.
-- When then multiply this lambda by the Jacobian transpose to get the velocities vector to apply our linear and angular impulses.
+- We solve our constraints in three steps: PreSolve, Solve, PostSolve
+- **PreSolve**:
+	- We caluclate the **Jacobian Matrix**.
+	- We use **Warm Starting** which help us cache the previous frame's constraint forces and re-apply them this frame.
+	- We then compute the **bias** (Baumgarte stabilisation) to help stabilise our simulation.
+	- For the *Penetration constraint*, we calculate and add the bouciness to the **bias**. 
+- **Solve**:
+	- We use the **Gauss-Seidel** to solve our system of action to get the **lambda** (Lagrange multipliers).
+	- We multiply this **lambda** by the Jacobian transpose to get the velocities vector to apply our linear and angular impulses.
+	- For the *Penetration constraint*, we use the friction to calculate the **lambda**.
+- **PostSolve**:
+	- We limit the **Warm Starting** to reasonable limits.
+
+## Collision Resolution
+- We use the penetration constraint for collision resolution.
+- We first integrate all the forces applied to the rigidbodies.
+- We then create a penetration constraint for every collision based on the contact information.
+- We solve all the constraints (Penetration and Joint) and integrate all the velocities.

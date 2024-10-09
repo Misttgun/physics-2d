@@ -38,7 +38,7 @@ MatMN& MatMN::operator=(MatMN&& mat) noexcept
 	n = mat.n;
 	m = mat.m;
 
-	rows = nullptr;
+	mat.rows = nullptr;
 	return *this;
 }
 

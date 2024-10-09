@@ -1,4 +1,7 @@
 #include "Constraint.h"
+
+#include <algorithm>
+
 #include "RigidBody.h"
 
 MatMN Constraint::GetInvM() const
@@ -32,8 +35,11 @@ VecN Constraint::GetVelocities() const
 }
 
 JointConstraint::JointConstraint(const std::shared_ptr<RigidBody>& aRb, const std::shared_ptr<RigidBody>& bRb, const Vec2& anchorPoint)
-	: jacobian(1, 6), cachedLambda(1), bias(0.0f)
 {
+	jacobian = MatMN(1, 6);
+	cachedLambda = VecN(1);
+	bias = 0.0f;
+
 	a = aRb;
 	b = bRb;
 	aPoint = a->WorldToLocal(anchorPoint);
@@ -115,6 +121,125 @@ void JointConstraint::Solve()
 }
 
 void JointConstraint::PostSolve()
+{
+	Constraint::PostSolve();
+}
+
+PenetrationConstraint::PenetrationConstraint(const std::shared_ptr<RigidBody>& aRb, const std::shared_ptr<RigidBody>& bRb,
+                                             const Vec2& aCollisionPoint, const Vec2& bCollisionPoint, const Vec2& collisionNormal)
+{
+	jacobian = MatMN(2, 6);
+	cachedLambda = VecN(2);
+	bias = 0.0f;
+
+	a = aRb;
+	b = bRb;
+	aPoint = a->WorldToLocal(aCollisionPoint);
+	bPoint = b->WorldToLocal(bCollisionPoint);
+	normal = a->WorldToLocal(collisionNormal);
+
+	friction = 0.0f;
+
+	cachedLambda.Zero();
+}
+
+void PenetrationConstraint::PreSolve(const float dt)
+{
+	// Get the collision points in world space
+	const Vec2 pa = a->LocalToWorld(aPoint);
+	const Vec2 pb = b->LocalToWorld(bPoint);
+	const Vec2 n = a->LocalToWorld(normal);
+
+	const Vec2 ra = pa - a->m_position;
+	const Vec2 rb = pb - b->m_position;
+
+	jacobian.Zero();
+
+	jacobian.rows[0][0] = -n.x;			// A linear velocity.x
+	jacobian.rows[0][1] = -n.y;			// A linear velocity.y
+	jacobian.rows[0][2] = -ra.Cross(n); // A angular velocity
+	jacobian.rows[0][3] = n.x;			// B linear velocity.x
+	jacobian.rows[0][4] = n.y;			// B linear velocity.y
+	jacobian.rows[0][5] = rb.Cross(n);	// B angular velocity
+
+	friction = std::max(a->m_friction, b->m_friction);
+	if(friction > 0.0f)
+	{
+		const Vec2 t = n.Perpendicular(); // Tangent vector
+		jacobian.rows[1][0] = -t.x;
+		jacobian.rows[1][1] = -t.y;
+		jacobian.rows[1][2] = -ra.Cross(t);
+		jacobian.rows[1][3] = t.x;
+		jacobian.rows[1][4] = t.y;
+		jacobian.rows[1][5] = rb.Cross(t);
+	}
+
+	// Warm starting (apply cached lambda)
+	VecN impulses = jacobian.Transpose() * cachedLambda;
+
+	// Apply the impulses to both A and B
+	a->ApplyImpulseLinear(Vec2(impulses[0], impulses[1]));
+	a->ApplyImpulseAngular(impulses[2]);
+	b->ApplyImpulseLinear(Vec2(impulses[3], impulses[4]));
+	b->ApplyImpulseAngular(impulses[5]);
+
+	// Compute the positional error
+	float c = (pb - pa).Dot(-n);
+	c = std::min(0.0f, c + 0.01f);
+
+	// Calculate relative velocity pre-impulse normal, which will be used to compute elasticity
+	const Vec2 va = a->m_velocity + Vec2(-a->m_angularVelocity * ra.y, a->m_angularVelocity * ra.x);
+	const Vec2 vb = b->m_velocity + Vec2(-b->m_angularVelocity * rb.y, b->m_angularVelocity * rb.x);
+	const float vRelDotNormal = (va - vb).Dot(n);
+
+	// Get the restitution between the two bodies
+	const float e = std::min(a->m_restitution, b->m_restitution);
+
+	// Compute the bias term (Baumgarte stabilization)
+	constexpr float beta = 0.2f;
+	bias = beta / dt * c + e * vRelDotNormal;
+}
+
+void PenetrationConstraint::Solve()
+{
+	const VecN v = GetVelocities();
+	const MatMN invM = GetInvM();
+
+	const MatMN j = jacobian;
+	const MatMN jt = jacobian.Transpose();
+
+	// Calculate the numerator
+	const MatMN lhs = j * invM * jt; // A
+	VecN rhs = j * v * -1.0f; // b
+	rhs[0] -= bias;
+
+	// Solve the values of lambda using Ax=b (Gauss-Seidel method)
+	VecN lambda = MatMN::SolveGaussSeidel(lhs, rhs);
+
+	// Accumulate the lambda and clamp it within constraint limits
+	const VecN oldLambda = cachedLambda;
+	cachedLambda += lambda;
+	cachedLambda[0] = cachedLambda[0] < 0.0f ? 0.0f : cachedLambda[0];
+
+	if(friction > 0.0f)
+	{
+		const float maxFriction = cachedLambda[0] * friction;
+		cachedLambda[1] = std::clamp(cachedLambda[1], -maxFriction, maxFriction);
+	}
+
+	lambda = cachedLambda - oldLambda;
+
+	// Compute the final impulses with direction and magnitude
+	VecN impulses = jt * lambda;
+
+	// Apply the impulses to both A and B
+	a->ApplyImpulseLinear(Vec2(impulses[0], impulses[1]));
+	a->ApplyImpulseAngular(impulses[2]);
+	b->ApplyImpulseLinear(Vec2(impulses[3], impulses[4]));
+	b->ApplyImpulseAngular(impulses[5]);
+}
+
+void PenetrationConstraint::PostSolve()
 {
 	Constraint::PostSolve();
 }

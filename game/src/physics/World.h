@@ -30,6 +30,4 @@ public:
 	void AddTorque(float torque);
 
 	void Update(float dt) const;
-
-	void CheckCollisions() const;
 };

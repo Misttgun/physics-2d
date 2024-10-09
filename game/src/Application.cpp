@@ -1,6 +1,5 @@
 #include "Application.h"
 #include "Graphics.h"
-#include "raymath.h"
 #include "physics/Constants.h"
 #include "physics/Constraint.h"
 #include "physics/RigidBody.h"
@@ -37,7 +36,7 @@ void Application::Setup()
 	m_world = std::make_unique<World>(-9.8f);
 
 	// Add ragdoll parts (rigid bodies)
-	const auto bob = std::make_shared<RigidBody>(CircleShape(5), Graphics::Width() / 2.0, Graphics::Height() / 2.0 - 200, 0.0);
+	/*const auto bob = std::make_shared<RigidBody>(CircleShape(5), Graphics::Width() / 2.0, Graphics::Height() / 2.0 - 200, 0.0);
 	const auto head = std::make_shared<RigidBody>(CircleShape(25), bob->m_position.x, bob->m_position.y + 70, 5.0);
 	const auto torso = std::make_shared<RigidBody>(BoxShape(50, 100), head->m_position.x, head->m_position.y + 80, 3.0);
 	const auto leftArm = std::make_shared<RigidBody>(BoxShape(15, 70), torso->m_position.x - 32, torso->m_position.y - 10, 1.0);
@@ -59,10 +58,10 @@ void Application::Setup()
 	m_world->AddBody(leftArm);
 	m_world->AddBody(rightArm);
 	m_world->AddBody(leftLeg);
-	m_world->AddBody(rightLeg);
+	m_world->AddBody(rightLeg);*/
 
 	// Add joints between ragdoll parts (distance constraints with one anchor point)
-	const auto string = std::make_shared<JointConstraint>(bob, head, bob->m_position);
+	/*const auto string = std::make_shared<JointConstraint>(bob, head, bob->m_position);
 	const auto neck = std::make_shared<JointConstraint>(head, torso, head->m_position + Vec2(0, 25));
 	const auto leftShoulder = std::make_shared<JointConstraint>(torso, leftArm, torso->m_position + Vec2(-28, -45));
 	const auto rightShoulder = std::make_shared<JointConstraint>(torso, rightArm, torso->m_position + Vec2(+28, -45));
@@ -74,7 +73,7 @@ void Application::Setup()
 	m_world->AddConstraint(leftShoulder);
 	m_world->AddConstraint(rightShoulder);
 	m_world->AddConstraint(leftHip);
-	m_world->AddConstraint(rightHip);
+	m_world->AddConstraint(rightHip);*/
 
 	/*constexpr int numBodies = 8;
 	for (int i = 0; i < numBodies; ++i)
@@ -109,13 +108,13 @@ void Application::Setup()
 	rightWall->SetTexture("metal-image");
 	m_world->AddBody(rightWall);
 
-	/*const auto bigBox = std::make_shared<RigidBody>(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
+	const auto bigBox = std::make_shared<RigidBody>(BoxShape(200, 200), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
 	bigBox->m_rotation = 1.4f;
 	bigBox->m_restitution = 0.5f;
 	bigBox->SetTexture("crate-image");
 	m_world->AddBody(bigBox);
 
-	const Vec2 wind(0.5f * PIXELS_PER_METER, 0.0f);
+	/*const Vec2 wind(0.5f * PIXELS_PER_METER, 0.0f);
 	m_world->AddForce(wind);*/
 }
 
@@ -140,13 +139,13 @@ void Application::ProcessInput()
 		m_world->AddBody(box);
 	}
 
-	if(Vector2Length( GetMouseDelta()) >= 2.0f)
+	/*if(Vector2Length( GetMouseDelta()) >= 2.0f)
 	{
 		const Vec2 mouse = Vec2(GetMouseX(), GetMouseY());
 		const auto& bob = m_world->GetBodies().at(0);
 		const Vec2 direction = (mouse - bob->m_position).Normalize();
 		bob->m_position += direction * 2.0f;
-	}
+	}*/
 }
 
 void Application::Update() const
@@ -169,9 +168,9 @@ void Application::Render() const
 	const auto bodies = m_world->GetBodies();
 
 	// Draw a line between the bob and the ragdoll head
-	const auto& bob = bodies.at(0);
+	/*const auto& bob = bodies.at(0);
 	const auto& head = bodies.at(1);
-	Graphics::DrawLine(bob->m_position, head->m_position, {85, 85, 85, 255});
+	Graphics::DrawLine(bob->m_position, head->m_position, {85, 85, 85, 255});*/
 
 	// Draw all joints anchor points
 	if (m_debug)
@@ -202,7 +201,7 @@ void Application::Render() const
 			}
 			else
 			{
-				Graphics::DrawCircle(body->m_position, circleShape->m_radius, body->m_rotation, body->m_isColliding ? RED : WHITE);
+				Graphics::DrawCircle(body->m_position, circleShape->m_radius, body->m_rotation, WHITE);
 			}
 		}
 
@@ -216,7 +215,7 @@ void Application::Render() const
 			}
 			else
 			{
-				Graphics::DrawPolygon(body->m_position, boxShape->m_worldVertices, body->m_isColliding ? RED : WHITE);
+				Graphics::DrawPolygon(body->m_position, boxShape->m_worldVertices, WHITE);
 			}
 		}
 
@@ -229,7 +228,7 @@ void Application::Render() const
 			}
 			else
 			{
-				Graphics::DrawPolygon(body->m_position, polygonShape->m_worldVertices, body->m_isColliding ? RED : WHITE);
+				Graphics::DrawPolygon(body->m_position, polygonShape->m_worldVertices, WHITE);
 			}
 		}
 	}
