@@ -36,7 +36,6 @@ public:
 	// Coefficient of friction
 	float m_friction;
 
-	// Pointer to shape
 	std::unique_ptr<Shape> m_shape;
 
 	std::string m_textureId;
@@ -52,13 +51,15 @@ public:
 	void ClearForces();
 	void ClearTorque();
 
-	void ApplyImpulse(const Vec2& impulse);
-	void ApplyImpulse(const Vec2& impulse, const Vec2& r);
+	[[nodiscard]] Vec2 LocalToWorld(const Vec2& point) const;
+	[[nodiscard]] Vec2 WorldToLocal(const Vec2& point) const;
 
-	void IntegrateLinear(float dt);
-	void IntegrateAngular(float dt);
+	void ApplyImpulseLinear(const Vec2& j);
+    void ApplyImpulseAngular(float j);
+    void ApplyImpulseAtPoint(const Vec2& j, const Vec2& r);
 
-	void Update(float dt);
+	void IntegrateForces(float dt);
+	void IntegrateVelocities(float dt);
 
 	void SetTexture(const std::string& textureId);
 };

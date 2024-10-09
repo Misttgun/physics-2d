@@ -31,4 +31,6 @@
 - We then combine those two impulses and apply them to the rigid bodies in opposite directions.
 
 ## Constraints
-- 
+- We have two type of constraints (Joint constraint and Penetration constraint).
+- To solve the Joint constraint, we calculate the Jacobian matrix and use the Gauss-Seidel to solve our system of action to get the lambda.
+- When then multiply this lambda by the Jacobian transpose to get the velocities vector to apply our linear and angular impulses.

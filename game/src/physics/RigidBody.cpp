@@ -32,6 +32,8 @@ RigidBody::RigidBody(const Shape& shape, const int x, const int y, const float m
 		m_invInertia = 1 / m_inertia;
 	else
 		m_invInertia = 0.0f;
+
+	m_shape->UpdateVertices(m_position, m_rotation);
 }
 
 bool RigidBody::IsStatic() const
@@ -54,58 +56,75 @@ void RigidBody::ClearTorque()
 	m_sumTorque = 0.0f;
 }
 
+Vec2 RigidBody::LocalToWorld(const Vec2& point) const
+{
+	const Vec2 rotated = point.Rotate(m_rotation);
+	return rotated + m_position;
+}
+
+Vec2 RigidBody::WorldToLocal(const Vec2& point) const
+{
+	const float translatedX = point.x - m_position.x;
+	const float translatedY = point.y - m_position.y;
+	const float rotatedX = cos(-m_rotation) * translatedX - sin(-m_rotation) * translatedY;
+	const float rotatedY = cos(-m_rotation) * translatedY + sin(-m_rotation) * translatedX;
+
+	return {rotatedX, rotatedY};
+}
+
 void RigidBody::ClearForces()
 {
 	m_sumForces = Vec2(0.0f, 0.0f);
 }
 
-void RigidBody::ApplyImpulse(const Vec2& impulse)
+void RigidBody::ApplyImpulseLinear(const Vec2& j)
 {
 	if (IsStatic())
 		return;
 
-	m_velocity += impulse * m_invMass;
+	m_velocity += j * m_invMass;
 }
 
-void RigidBody::ApplyImpulse(const Vec2& impulse, const Vec2& r)
+void RigidBody::ApplyImpulseAngular(const float j)
 {
 	if (IsStatic())
 		return;
 
-	m_velocity += impulse * m_invMass;
-	m_angularVelocity += r.Cross(impulse) * m_invInertia;
+	m_angularVelocity += j * m_invInertia;
 }
 
-void RigidBody::IntegrateLinear(const float dt)
+void RigidBody::ApplyImpulseAtPoint(const Vec2& j, const Vec2& r)
+{
+	if (IsStatic())
+		return;
+
+	m_velocity += j * m_invMass;
+	m_angularVelocity += r.Cross(j) * m_invInertia;
+}
+
+void RigidBody::IntegrateForces(const float dt)
 {
 	if (IsStatic())
 		return;
 
 	m_acceleration = m_sumForces * m_invMass;
+	m_velocity += m_acceleration * dt;
 
-	m_velocity += (m_acceleration * dt);
-	m_position += (m_velocity * dt);
+	m_angularAcceleration = m_sumTorque * m_invInertia;
+	m_angularVelocity += m_angularAcceleration * dt;
 
 	ClearForces();
+	ClearTorque();
 }
 
-void RigidBody::IntegrateAngular(const float dt)
+void RigidBody::IntegrateVelocities(const float dt)
 {
 	if (IsStatic())
 		return;
 
-	m_angularAcceleration = m_sumTorque * m_invInertia;
-
-	m_angularVelocity += m_angularAcceleration * dt;
+	m_position += (m_velocity * dt);
 	m_rotation += m_angularVelocity * dt;
 
-	ClearTorque();
-}
-
-void RigidBody::Update(const float dt)
-{
-	IntegrateLinear(dt);
-	IntegrateAngular(dt);
 	m_shape->UpdateVertices(m_position, m_rotation);
 }
 

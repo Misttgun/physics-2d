@@ -262,6 +262,6 @@ inline void ResolveCollision(const Contact& contact)
 	const Vec2 impulse = impulseN + impulseT;
 
 	// Apply the impulse vector to both objects in opposite direction
-	a->ApplyImpulse(impulse, ra);
-	b->ApplyImpulse(-impulse, rb);
+	a->ApplyImpulseAtPoint(impulse, ra);
+	b->ApplyImpulseAtPoint(-impulse, rb);
 }

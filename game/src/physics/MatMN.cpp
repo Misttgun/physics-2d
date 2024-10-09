@@ -2,94 +2,114 @@
 
 #include <utility>
 
-MatMN::MatMN(): m_m(0), m_n(0), m_rows(nullptr) {}
+MatMN::MatMN(): m(0), n(0), rows(nullptr) {}
 
-MatMN::MatMN(const int m, const int n): m_m(m), m_n(n)
+MatMN::MatMN(const int row, const int col): m(row), n(col)
 {
-	m_rows = new VecN[m];
+	rows = new VecN[m];
 
 	for (int i = 0; i < m; i++)
-		m_rows[i] = VecN(n);
+		rows[i] = VecN(n);
 }
 
-MatMN::MatMN(const MatMN& m) : m_m(m.m_m), m_n(m.m_n)
+MatMN::MatMN(const MatMN& mat) : m(mat.m), n(mat.n)
 {
-	m_rows = new VecN[m_m];
-	for (int i = 0; i < m_m; i++)
-		m_rows[i] = m.m_rows[i];
+	rows = new VecN[m];
+	for (int i = 0; i < m; i++)
+		rows[i] = mat.rows[i];
 }
 
 MatMN::~MatMN()
 {
-	delete[] m_rows;
+	delete[] rows;
 }
 
-MatMN::MatMN(MatMN&& m) noexcept : m_m(m.m_m), m_n(m.m_n)
+MatMN::MatMN(MatMN&& mat) noexcept : m(mat.m), n(mat.n)
 {
-	m_rows = m.m_rows;
-	m.m_rows = nullptr;
+	rows = mat.rows;
+	mat.rows = nullptr;
 }
 
-MatMN& MatMN::operator=(MatMN&& m) noexcept
+MatMN& MatMN::operator=(MatMN&& mat) noexcept
 {
-	delete[] m_rows;
+	delete[] rows;
 
-	m_rows = m.m_rows;
-	m_n = m.m_n;
-	m_m = m.m_m;
+	rows = mat.rows;
+	n = mat.n;
+	m = mat.m;
 
-	m_rows = nullptr;
+	rows = nullptr;
 	return *this;
 }
 
 void MatMN::Zero() const
 {
-	for (int i = 0; i < m_m; i++)
-		m_rows[i].Zero();
+	for (int i = 0; i < m; i++)
+		rows[i].Zero();
 }
 
 MatMN MatMN::Transpose() const
 {
-	MatMN result(m_n, m_m);
+	MatMN result(n, m);
 
-	for (int i = 0; i < m_m; i++)
-		for (int j = 0; j < m_n; j++)
-			result.m_rows[j][i] = m_rows[i][j];
+	for (int i = 0; i < m; i++)
+		for (int j = 0; j < n; j++)
+			result.rows[j][i] = rows[i][j];
 
 	return result;
 }
 
-MatMN& MatMN::operator =(const MatMN& m)
+MatMN& MatMN::operator =(const MatMN& mat)
 {
-	MatMN temp = m;
+	MatMN temp = mat;
 	*this = std::move(temp);
 	return *this;
 }
 
 VecN MatMN::operator *(const VecN& v) const
 {
-	if (v.N() != m_n)
+	if (v.n != n)
 		return v;
 
-	VecN result(m_m);
+	VecN result(m);
 
-	for (int i = 0; i < m_m; i++)
-		result[i] = v.Dot(m_rows[i]);
+	for (int i = 0; i < m; i++)
+		result[i] = v.Dot(rows[i]);
 
 	return result;
 }
 
-MatMN MatMN::operator *(const MatMN& m) const
+MatMN MatMN::operator *(const MatMN& mat) const
 {
-	if (m.m_m != m_n && m.m_n != m_m)
-		return m;
+	if (mat.m != n && mat.n != m)
+		return mat;
 
-	const MatMN transposed = m.Transpose();
-	MatMN result(m_m, m.m_n);
+	const MatMN transposed = mat.Transpose();
+	MatMN result(m, mat.n);
 
-	for (int i = 0; i < m_m; i++)
-		for (int j = 0; j < m.m_n; j++)
-			result.m_rows[i][j] = m_rows[i].Dot(transposed.m_rows[j]);
+	for (int i = 0; i < m; i++)
+		for (int j = 0; j < mat.n; j++)
+			result.rows[i][j] = rows[i].Dot(transposed.rows[j]);
 
 	return result;
+}
+
+VecN MatMN::SolveGaussSeidel(const MatMN& mat, const VecN& vec)
+{
+	const int vN = vec.n;
+	VecN x(vN);
+	x.Zero();
+
+	// Iterate N times
+	for (int iterations = 0; iterations < vN; iterations++)
+	{
+		for (int i = 0; i < vN; i++)
+		{
+			const float dx = (vec[i] / mat.rows[i][i]) - (mat.rows[i].Dot(x) / mat.rows[i][i]);
+
+			if (isnan(dx) == false)
+				x[i] += dx;
+		}
+	}
+	return x;
 }

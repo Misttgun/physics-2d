@@ -2,27 +2,26 @@
 
 #include "VecN.h"
 
-class MatMN
+struct MatMN
 {
-public:
+	int m;
+	int n;
+	VecN* rows; // the rows of the matrix with N columns inside
+
 	MatMN();
-	MatMN(int m, int n);
-	MatMN(const MatMN& m);
+	MatMN(int row, int col);
+	MatMN(const MatMN& mat);
 	~MatMN();
 
-	MatMN(MatMN&& m) noexcept;
-	MatMN& operator =(MatMN&& m) noexcept;
+	MatMN(MatMN&& mat) noexcept;
+	MatMN& operator =(MatMN&& mat) noexcept;
 
 	void Zero() const;
 	[[nodiscard]] MatMN Transpose() const;
 
-	MatMN& operator =(const MatMN& m);
+	MatMN& operator =(const MatMN& mat);
 	VecN operator *(const VecN& v) const;
-	MatMN operator *(const MatMN& m) const;
+	MatMN operator *(const MatMN& mat) const;
 
-private:
-	int m_m;
-	int m_n;
-
-	VecN* m_rows; // the rows of the matrix with N columns inside
+	static VecN SolveGaussSeidel(const MatMN& mat, const VecN& vec);
 };

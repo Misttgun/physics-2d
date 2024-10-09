@@ -19,6 +19,13 @@ int Graphics::Height()
 void Graphics::OpenWindow()
 {
 	InitWindow(m_windowWidth, m_windowHeight, "Physics 2D");
+
+	/*const int currentMonitorId = GetCurrentMonitor();
+	m_windowWidth = GetMonitorWidth(currentMonitorId);
+	m_windowHeight = GetMonitorHeight(currentMonitorId);
+
+	SetWindowSize(m_windowWidth, m_windowHeight);
+	SetWindowState(FLAG_WINDOW_RESIZABLE);*/
 }
 
 void Graphics::ClearScreen(const Color &color)

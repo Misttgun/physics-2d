@@ -1,8 +1,7 @@
 #pragma once
 
-class VecN
+struct VecN
 {
-public:
 	VecN();
 	explicit VecN(int n);
 	VecN(const VecN& v);
@@ -17,19 +16,13 @@ public:
 	VecN& operator =(const VecN& v);
 	VecN operator +(const VecN& v) const;
 	VecN operator -(const VecN& v) const;
-	VecN operator *(float n) const;
+	VecN operator *(float value) const;
 	const VecN& operator +=(const VecN& v);
 	const VecN& operator -=(const VecN& v);
-	const VecN& operator *=(float n);
+	const VecN& operator *=(float value);
 	float operator [](int index) const;
 	float& operator [](int index);
 
-	[[nodiscard]] int N() const
-	{
-		return m_n;
-	}
-
-private:
-	int m_n;
-	float* m_data;
+	int n;
+	float* data;
 };
