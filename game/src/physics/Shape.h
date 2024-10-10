@@ -22,10 +22,10 @@ public:
 
 	Shape() = default;
 	virtual ~Shape() = default;
-	Shape(const Shape& shape) = default;
-	Shape& operator =(const Shape& shape) = default;
-	Shape(Shape&& shape) = default;
-	Shape& operator = (Shape&& shape) = default;
+	Shape(const Shape& shape) = delete;
+	Shape& operator =(const Shape& shape) = delete;
+	Shape(Shape&& shape) = delete;
+	Shape& operator = (Shape&& shape) = delete;
 };
 
 class CircleShape final : public Shape
@@ -41,15 +41,17 @@ public:
 
 	CircleShape() = default;
 	~CircleShape() override = default;
-	CircleShape(const CircleShape& shape) = default;
-	CircleShape& operator =(const CircleShape& shape) = default;
-	CircleShape(CircleShape&& shape) = default;
-	CircleShape& operator = (CircleShape&& shape) = default;
+	CircleShape(const CircleShape& shape) = delete;
+	CircleShape& operator =(const CircleShape& shape) = delete;
+	CircleShape(CircleShape&& shape) = delete;
+	CircleShape& operator = (CircleShape&& shape) = delete;
 };
 
 class PolygonShape : public Shape
 {
 public:
+	int m_width;
+	int m_height;
 	std::vector<Vec2> m_localVertices;
 	std::vector<Vec2> m_worldVertices;
 
@@ -58,23 +60,23 @@ public:
 	[[nodiscard]] std::unique_ptr<Shape> Clone() const override;
 	[[nodiscard]] float GetMomentOfInertia() const override;
 	void UpdateVertices(const Vec2& position, float angle) override;
+
 	[[nodiscard]] Vec2 EdgeAt(std::size_t index) const;
-	float FindMinimumSeparation(const PolygonShape* other, Vec2& outAxis, Vec2& outPoint) const;
+	float FindMinSeparation(const PolygonShape* other, int& indexReferenceEdge, Vec2& supportPoint) const;
+	[[nodiscard]] int FindIncidentEdge(const Vec2& normal) const;
+	static int ClipSegmentToLine(const std::vector<Vec2>& contactsIn, std::vector<Vec2>& contactsOut, const Vec2& c0, const Vec2& c1);
 
 	PolygonShape() = default;
 	~PolygonShape() override = default;
-	PolygonShape(const PolygonShape& shape) = default;
-	PolygonShape& operator = (const PolygonShape& shape) = default;
-	PolygonShape(PolygonShape&& shape) = default;
-	PolygonShape& operator = (PolygonShape&& shape) = default;
+	PolygonShape(const PolygonShape& shape) = delete;
+	PolygonShape& operator = (const PolygonShape& shape) = delete;
+	PolygonShape(PolygonShape&& shape) = delete;
+	PolygonShape& operator = (PolygonShape&& shape) = delete;
 };
 
 class BoxShape final : public PolygonShape
 {
 public:
-	int m_width;
-	int m_height;
-
 	BoxShape(int width, int height);
 	[[nodiscard]] ShapeType GetType() const override;
 	[[nodiscard]] std::unique_ptr<Shape> Clone() const override;
@@ -82,8 +84,8 @@ public:
 
 	BoxShape() = default;
 	~BoxShape() override = default;
-	BoxShape(const BoxShape& shape) = default;
-	BoxShape& operator =(const BoxShape& shape) = default;
-	BoxShape(BoxShape&& shape) = default;
-	BoxShape& operator = (BoxShape&& shape) = default;
+	BoxShape(const BoxShape& shape) = delete;
+	BoxShape& operator =(const BoxShape& shape) = delete;
+	BoxShape(BoxShape&& shape) = delete;
+	BoxShape& operator = (BoxShape&& shape) = delete;
 };

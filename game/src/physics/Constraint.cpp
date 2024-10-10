@@ -87,7 +87,7 @@ void JointConstraint::PreSolve(const float dt)
 	c = std::max(0.0f, c - 0.01f);
 
 	// Compute the bias term (Baumgarte stabilization)
-	constexpr float beta = 0.1f;
+	constexpr float beta = 0.02f;
 	bias = beta / dt * c;
 }
 
@@ -122,7 +122,8 @@ void JointConstraint::Solve()
 
 void JointConstraint::PostSolve()
 {
-	Constraint::PostSolve();
+	// Limit the warm starting to reasonable limits
+	cachedLambda[0] = std::clamp(cachedLambda[0], -10000.0f, 10000.0f);
 }
 
 PenetrationConstraint::PenetrationConstraint(const std::shared_ptr<RigidBody>& aRb, const std::shared_ptr<RigidBody>& bRb,
@@ -187,17 +188,17 @@ void PenetrationConstraint::PreSolve(const float dt)
 	float c = (pb - pa).Dot(-n);
 	c = std::min(0.0f, c + 0.01f);
 
-	// Calculate relative velocity pre-impulse normal, which will be used to compute elasticity
-	const Vec2 va = a->m_velocity + Vec2(-a->m_angularVelocity * ra.y, a->m_angularVelocity * ra.x);
-	const Vec2 vb = b->m_velocity + Vec2(-b->m_angularVelocity * rb.y, b->m_angularVelocity * rb.x);
-	const float vRelDotNormal = (va - vb).Dot(n);
+	//// Calculate relative velocity pre-impulse normal, which will be used to compute elasticity
+	//const Vec2 va = a->m_velocity + Vec2(-a->m_angularVelocity * ra.y, a->m_angularVelocity * ra.x);
+	//const Vec2 vb = b->m_velocity + Vec2(-b->m_angularVelocity * rb.y, b->m_angularVelocity * rb.x);
+	//const float vRelDotNormal = (va - vb).Dot(n);
 
-	// Get the restitution between the two bodies
-	const float e = std::min(a->m_restitution, b->m_restitution);
+	//// Get the restitution between the two bodies
+	//const float e = std::min(a->m_restitution, b->m_restitution);
 
 	// Compute the bias term (Baumgarte stabilization)
 	constexpr float beta = 0.2f;
-	bias = beta / dt * c + e * vRelDotNormal;
+	bias = beta / dt * c /*+ e * vRelDotNormal*/;
 }
 
 void PenetrationConstraint::Solve()

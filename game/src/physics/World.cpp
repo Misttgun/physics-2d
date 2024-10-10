@@ -60,15 +60,17 @@ void World::Update(const float dt) const
 	for (const auto& body : m_bodies)
 		body->IntegrateForces(dt);
 
-	Contact contact;
-
 	// Check all the rigid bodies with the other rigid bodies for collision
 	for (std::size_t i = 0; i < m_bodies.size() - 1; i++)
 	{
 		for (std::size_t j = i + 1; j < m_bodies.size(); j++)
 		{
-			if (IsColliding(m_bodies[i], m_bodies[j], contact))
-				penetrations.emplace_back(contact.a, contact.b, contact.start, contact.end, contact.normal);
+			std::vector<Contact> contacts;
+			if (IsColliding(m_bodies[i], m_bodies[j], contacts))
+			{
+				for (const auto& contact : contacts) 
+					penetrations.emplace_back(contact.a, contact.b, contact.start, contact.end, contact.normal);
+			}
 		}
 	}
 
@@ -79,7 +81,7 @@ void World::Update(const float dt) const
 	for (auto& constraint : penetrations)
 		constraint.PreSolve(dt);
 
-	for (int i = 0; i < 5; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		for (const auto& constraint : m_constraints)
 			constraint->Solve();

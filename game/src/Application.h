@@ -19,4 +19,7 @@ public:
 	void Update() const;
 	void Render() const;
 	static void Destroy();
+
+private:
+	void LoadResources();
 };

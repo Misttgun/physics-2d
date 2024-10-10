@@ -40,7 +40,7 @@ public:
 
 	std::string m_textureId;
 
-	RigidBody(const Shape& shape, int x, int y, float mass);
+	RigidBody(const Shape& shape, int x, int y, float mass = 0.0f);
 
 	[[nodiscard]] bool IsStatic() const;
 

@@ -1,5 +1,6 @@
 #include "MatMN.h"
 
+#include <cmath>
 #include <utility>
 
 MatMN::MatMN(): m(0), n(0), rows(nullptr) {}

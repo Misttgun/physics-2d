@@ -9,7 +9,10 @@ void ResourceManager::AddTexture(const std::string& assetId, const std::string& 
 
 Texture2D ResourceManager::GetTexture(const std::string& assetId) const
 {
-	return m_textures.at(assetId);
+	if(const auto found = m_textures.find(assetId); found != m_textures.end())
+		return found->second;
+
+	return Texture2D{};
 }
 
 ResourceManager::~ResourceManager()
