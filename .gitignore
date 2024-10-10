@@ -14,3 +14,6 @@ Makefile
 **.vcxproj.filters
 **.vcxproj.user
 **.csproj
+
+// Resharper
+*.user
