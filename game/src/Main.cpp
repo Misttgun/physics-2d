@@ -13,7 +13,7 @@ int main(int argc, char *[])
         app.Render();
     }
 
-    Application::Destroy();
+    app.Destroy();
 
     return 0;
 }

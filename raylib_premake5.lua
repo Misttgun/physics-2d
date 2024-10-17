@@ -61,7 +61,7 @@ function get_raylib_dir()
     if (os.isdir("../raylib-master")) then
         return "raylib-master"
     end
-    return "raylib"
+    return "vendor/raylib"
 end
 
 function link_raylib()

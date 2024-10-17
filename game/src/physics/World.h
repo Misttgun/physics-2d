@@ -1,30 +1,29 @@
 #pragma once
 
-#include <memory>
 #include <vector>
 
 #include "Vec2.h"
 
+struct JointConstraint;
 class RigidBody;
-struct Constraint;
 
 class World
 {
 private:
 	float m_gravity;
-	std::vector<std::shared_ptr<RigidBody>> m_bodies;
-	std::vector<std::shared_ptr<Constraint>> m_constraints;
+	std::vector<RigidBody*> m_bodies;
+	std::vector<JointConstraint*> m_constraints;
 	std::vector<Vec2> m_forces;
 	std::vector<float> m_torques;
 
 public:
 	explicit World(float gravity);
 
-	void AddBody(const std::shared_ptr<RigidBody>& body);
-	std::vector<std::shared_ptr<RigidBody>>& GetBodies();
+	void AddBody(RigidBody* body);
+	std::vector<RigidBody*>& GetBodies();
 
-	void AddConstraint(const std::shared_ptr<Constraint>& constraint);
-	std::vector<std::shared_ptr<Constraint>>& GetConstraints();
+	void AddConstraint(JointConstraint* constraint);
+	std::vector<JointConstraint*>& GetConstraints();
 
 	void AddForce(const Vec2& force);
 	void AddTorque(float torque);

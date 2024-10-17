@@ -20,16 +20,19 @@ void Application::Setup()
 
 	LoadResources();
 
+	m_rbArena.Init(8U * MEGABYTE);
+	m_constraintArena.Init(8U * KILOBYTE);
+
 	// Add bird
-	const auto bird = std::make_shared<RigidBody>(CircleShape(30.0f), 100, Graphics::Height() - 180, 3.0f);
+	const auto bird = CreateRigidBody(CircleShape(30.0f), 100, Graphics::Height() - 180, 3.0f);
 	bird->SetTexture("bird-red");
 	m_world->AddBody(bird);
 
 	// Add a floor and walls to contain objects
-	const auto floor = std::make_shared<RigidBody>(BoxShape(Graphics::Width(), 50), Graphics::Width() / 2, Graphics::Height() - 125);
-	const auto roof = std::make_shared<RigidBody>(BoxShape(Graphics::Width(), 50), Graphics::Width() / 2, -200);
-	const auto leftFence = std::make_shared<RigidBody>(BoxShape(50, Graphics::Height() * 2), -25, Graphics::Height() / 2);
-	const auto rightFence = std::make_shared<RigidBody>(BoxShape(50, Graphics::Height() * 2), Graphics::Width() + 25, Graphics::Height() / 2);
+	const auto floor = CreateRigidBody(BoxShape(Graphics::Width(), 50), Graphics::Width() / 2, Graphics::Height() - 125);
+	const auto roof = CreateRigidBody(BoxShape(Graphics::Width(), 50), Graphics::Width() / 2, -200);
+	const auto leftFence = CreateRigidBody(BoxShape(50, Graphics::Height() * 2), -25, Graphics::Height() / 2);
+	const auto rightFence = CreateRigidBody(BoxShape(50, Graphics::Height() * 2), Graphics::Width() + 25, Graphics::Height() / 2);
 	m_world->AddBody(floor);
 	m_world->AddBody(leftFence);
 	m_world->AddBody(rightFence);
@@ -38,8 +41,8 @@ void Application::Setup()
 	// Add a stack of boxes
 	for (int i = 1; i <= 4; i++)
 	{
-		float mass = 10.0f / static_cast<float>(i);
-		const auto box = std::make_shared<RigidBody>(BoxShape(30, 30), 400, static_cast<int>(floor->m_position.y) - i * 40, mass);
+		const float mass = 10.0f / static_cast<float>(i);
+		const auto box = CreateRigidBody(BoxShape(30, 30), 400, static_cast<int>(floor->m_position.y) - i * 40, mass);
 		box->SetTexture("wood-box");
 		box->m_friction = 0.9f;
 		box->m_restitution = 0.1f;
@@ -47,9 +50,9 @@ void Application::Setup()
 	}
 
 	// Add structure with blocks
-	const auto plank1 = std::make_shared<RigidBody>(BoxShape(30, 90), Graphics::Width() / 2 - 40, static_cast<int>(floor->m_position.y) - 70, 5.0f);
-	const auto plank2 = std::make_shared<RigidBody>(BoxShape(30, 90), Graphics::Width() / 2 + 60, static_cast<int>(floor->m_position.y) - 70, 5.0f);
-	const auto plank3 = std::make_shared<RigidBody>(BoxShape(180, 15), Graphics::Width() / 2 + 10, static_cast<int>(floor->m_position.y) - 130, 2.0f);
+	const auto plank1 = CreateRigidBody(BoxShape(30, 90), Graphics::Width() / 2 - 40, static_cast<int>(floor->m_position.y) - 70, 5.0f);
+	const auto plank2 = CreateRigidBody(BoxShape(30, 90), Graphics::Width() / 2 + 60, static_cast<int>(floor->m_position.y) - 70, 5.0f);
+	const auto plank3 = CreateRigidBody(BoxShape(180, 15), Graphics::Width() / 2 + 10, static_cast<int>(floor->m_position.y) - 130, 2.0f);
 	plank1->SetTexture("wood-plank-solid");
 	plank2->SetTexture("wood-plank-solid");
 	plank3->SetTexture("wood-plank-cracked");
@@ -64,7 +67,7 @@ void Application::Setup()
 		Vec2(0, -20)
 	};
 
-	const auto triangle = std::make_shared<RigidBody>(PolygonShape(triangleVertices), static_cast<int>(plank3->m_position.x), static_cast<int>(plank3->m_position.y) - 50, 0.5f);
+	const auto triangle = CreateRigidBody(PolygonShape(triangleVertices), static_cast<int>(plank3->m_position.x), static_cast<int>(plank3->m_position.y) - 50, 0.5f);
 	triangle->SetTexture("wood-triangle");
 	m_world->AddBody(triangle);
 
@@ -74,10 +77,10 @@ void Application::Setup()
 	{
 		for (int row = 0; row < col; row++)
 		{
-			int x = static_cast<int>(plank3->m_position.x) + 200 + col * 33 - row * 17;
-			int y = static_cast<int>(floor->m_position.y) - 50 - row * 52;
-			float mass = 5.0f / (static_cast<float>(row) + 1.0f);
-			const auto box = std::make_shared<RigidBody>(BoxShape(30, 30), x, y, mass);
+			const int x = static_cast<int>(plank3->m_position.x) + 200 + col * 33 - row * 17;
+			const int y = static_cast<int>(floor->m_position.y) - 50 - row * 52;
+			const float mass = 5.0f / (static_cast<float>(row) + 1.0f);
+			const auto box = CreateRigidBody(BoxShape(30, 30), x, y, mass);
 			box->m_friction = 0.9f;
 			box->m_restitution = 0.0f;
 			box->SetTexture("wood-box");
@@ -88,34 +91,34 @@ void Application::Setup()
 	// Add a bridge of connected steps and joints
 	constexpr int numSteps = 10;
 	constexpr int spacing = 20;
-	const auto startStep = std::make_shared<RigidBody>(BoxShape(60, 15), 150, 150);
+	const auto startStep = CreateRigidBody(BoxShape(60, 15), 150, 150);
 	startStep->SetTexture("rock-bridge-anchor");
 	m_world->AddBody(startStep);
 
 	auto last = floor;
 	for (int i = 1; i <= numSteps; i++)
 	{
-		int x = static_cast<int>(startStep->m_position.x) + 20 + i * spacing;
-		int y = static_cast<int>(startStep->m_position.y) + 15;
-		float mass = i == numSteps ? 0.0f : 3.0f;
-		const auto step = std::make_shared<RigidBody>(CircleShape(10.0f), x, y, mass);
+		const int x = static_cast<int>(startStep->m_position.x) + 20 + i * spacing;
+		const int y = static_cast<int>(startStep->m_position.y) + 15;
+		const float mass = i == numSteps ? 0.0f : 3.0f;
+		const auto step = CreateRigidBody(CircleShape(10.0f), x, y, mass);
 		step->SetTexture("wood-bridge-step");
 		m_world->AddBody(step);
 
-		const auto joint = std::make_shared<JointConstraint>(last, step, step->m_position);
+		const auto joint = CreateJointConstraint(last, step, step->m_position);
 		m_world->AddConstraint(joint);
 		last = step;
 	}
 
-	const auto endStep = std::make_shared<RigidBody>(BoxShape(60, 15), static_cast<int>(last->m_position.x) + 40, static_cast<int>(last->m_position.y) - 15);
+	const auto endStep = CreateRigidBody(BoxShape(60, 15), static_cast<int>(last->m_position.x) + 40, static_cast<int>(last->m_position.y) - 15);
 	endStep->SetTexture("rock-bridge-anchor");
 	m_world->AddBody(endStep);
 
 	// Add pigs
-	const auto pig1 = std::make_shared<RigidBody>(CircleShape(20.0f), static_cast<int>(plank1->m_position.x) + 50, static_cast<int>(floor->m_position.y) - 45, 3.0f);
-	const auto pig2 = std::make_shared<RigidBody>(CircleShape(20.0f), static_cast<int>(plank2->m_position.x) + 400, static_cast<int>(floor->m_position.y) - 45, 3.0f);
-	const auto pig3 = std::make_shared<RigidBody>(CircleShape(20.0f), static_cast<int>(pig2->m_position.x) + 40, static_cast<int>(floor->m_position.y) - 45, 3.0f);
-	const auto pig4 = std::make_shared<RigidBody>(CircleShape(20.0f), 150, 100, 1.0f);
+	const auto pig1 = CreateRigidBody(CircleShape(20.0f), static_cast<int>(plank1->m_position.x) + 50, static_cast<int>(floor->m_position.y) - 45, 3.0f);
+	const auto pig2 = CreateRigidBody(CircleShape(20.0f), static_cast<int>(plank2->m_position.x) + 400, static_cast<int>(floor->m_position.y) - 45, 3.0f);
+	const auto pig3 = CreateRigidBody(CircleShape(20.0f), static_cast<int>(pig2->m_position.x) + 40, static_cast<int>(floor->m_position.y) - 45, 3.0f);
+	const auto pig4 = CreateRigidBody(CircleShape(20.0f), 150, 100, 1.0f);
 	pig1->SetTexture("pig-1");
 	pig2->SetTexture("pig-2");
 	pig3->SetTexture("pig-1");
@@ -133,7 +136,7 @@ void Application::ProcessInput()
 
 	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 	{
-		const auto circle = std::make_shared<RigidBody>(CircleShape(20.0f), GetMouseX(), GetMouseY(), 1.0f);
+		const auto circle = CreateRigidBody(CircleShape(20.0f), GetMouseX(), GetMouseY(), 1.0f);
 		circle->m_friction = 0.4f;
 		circle->SetTexture("rock-round");
 		m_world->AddBody(circle);
@@ -141,7 +144,7 @@ void Application::ProcessInput()
 
 	if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT))
 	{
-		const auto box = std::make_shared<RigidBody>(BoxShape(40, 40), GetMouseX(), GetMouseY(), 1.0f);
+		const auto box = CreateRigidBody(BoxShape(40, 40), GetMouseX(), GetMouseY(), 1.0f);
 		box->m_friction = 0.9f;
 		box->m_angularVelocity = 0.0f;
 		box->SetTexture("rock-box");
@@ -180,12 +183,9 @@ void Application::Render() const
 
 	Graphics::ClearScreen({15, 7, 33, 255});
 
-	if(true)
-	{
-		// Draw background texture
-		Graphics::DrawTexture(Vec2(static_cast<float>(Graphics::Width()) / 2.0f, static_cast<float>(Graphics::Height()) / 2.0f),
-							  static_cast<float>(Graphics::Width()), static_cast<float>(Graphics::Height()), 0.0f, m_resourceManager->GetTexture("background"));
-	}
+	// Draw background texture
+	Graphics::DrawTexture(Vec2(static_cast<float>(Graphics::Width()) / 2.0f, static_cast<float>(Graphics::Height()) / 2.0f),
+	                      static_cast<float>(Graphics::Width()), static_cast<float>(Graphics::Height()), 0.0f, m_resourceManager->GetTexture("background"));
 
 	const auto bodies = m_world->GetBodies();
 
@@ -239,6 +239,9 @@ void Application::Render() const
 
 void Application::Destroy()
 {
+	m_rbArena.FreeAll();
+	m_constraintArena.FreeAll();
+
 	Graphics::CloseWindow();
 }
 
@@ -261,4 +264,22 @@ void Application::LoadResources()
 	m_resourceManager->AddTexture("wood-plank-cracked", "wood-plank-cracked.png");
 	m_resourceManager->AddTexture("wood-plank-solid", "wood-plank-solid.png");
 	m_resourceManager->AddTexture("wood-triangle", "wood-triangle.png");
+}
+
+RigidBody* Application::CreateRigidBody(const Shape& shape, const int x, const int y, const float mass)
+{
+	constexpr size_t size = sizeof(RigidBody);
+	const auto rb = static_cast<RigidBody*>(m_rbArena.Allocate(size));
+	*rb = RigidBody(shape, x, y, mass);
+
+	return rb;
+}
+
+JointConstraint* Application::CreateJointConstraint(RigidBody* aRb, RigidBody* bRb, const Vec2& anchorPoint)
+{
+	constexpr size_t size = sizeof(JointConstraint);
+	const auto joint = static_cast<JointConstraint*>(m_constraintArena.Allocate(size));
+	*joint = JointConstraint(aRb, bRb, anchorPoint);
+
+	return joint;
 }

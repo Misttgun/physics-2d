@@ -9,22 +9,22 @@ World::World(const float gravity)
 	m_gravity = -gravity;
 }
 
-void World::AddBody(const std::shared_ptr<RigidBody>& body)
+void World::AddBody(RigidBody* body)
 {
 	m_bodies.push_back(body);
 }
 
-std::vector<std::shared_ptr<RigidBody>>& World::GetBodies()
+std::vector<RigidBody*>& World::GetBodies()
 {
 	return m_bodies;
 }
 
-void World::AddConstraint(const std::shared_ptr<Constraint>& constraint)
+void World::AddConstraint(JointConstraint* constraint)
 {
 	m_constraints.push_back(constraint);
 }
 
-std::vector<std::shared_ptr<Constraint>>& World::GetConstraints()
+std::vector<JointConstraint*>& World::GetConstraints()
 {
 	return m_constraints;
 }
@@ -44,7 +44,7 @@ void World::Update(const float dt) const
 	// Create a vector of penetration constraints that will be solved frame per frame
 	std::vector<PenetrationConstraint> penetrations;
 
-	for (const auto& body : m_bodies)
+	for (const auto body : m_bodies)
 	{
 		const Vec2 weight = Vec2(0.0f, m_gravity * PIXELS_PER_METER * body->m_mass);
 		body->AddForce(weight);
@@ -75,7 +75,7 @@ void World::Update(const float dt) const
 	}
 
 	// Solve all constraints
-	for (const auto& constraint : m_constraints)
+	for (const auto constraint : m_constraints)
 		constraint->PreSolve(dt);
 
 	for (auto& constraint : penetrations)
@@ -83,20 +83,20 @@ void World::Update(const float dt) const
 
 	for (int i = 0; i < 10; ++i)
 	{
-		for (const auto& constraint : m_constraints)
+		for (const auto constraint : m_constraints)
 			constraint->Solve();
 
 		for (auto& constraint : penetrations)
 			constraint.Solve();
 	}
 
-	for (const auto& constraint : m_constraints)
+	for (const auto constraint : m_constraints)
 		constraint->PostSolve();
 
 	for (auto& constraint : penetrations)
 		constraint.PostSolve();
 
 	// Integrate all the velocities
-	for (const auto& body : m_bodies)
+	for (const auto body : m_bodies)
 		body->IntegrateVelocities(dt);
 }

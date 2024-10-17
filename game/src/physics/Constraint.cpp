@@ -1,8 +1,7 @@
 #include "Constraint.h"
+#include "RigidBody.h"
 
 #include <algorithm>
-
-#include "RigidBody.h"
 
 MatMN Constraint::GetInvM() const
 {
@@ -34,7 +33,7 @@ VecN Constraint::GetVelocities() const
 	return v;
 }
 
-JointConstraint::JointConstraint(const std::shared_ptr<RigidBody>& aRb, const std::shared_ptr<RigidBody>& bRb, const Vec2& anchorPoint)
+JointConstraint::JointConstraint(RigidBody* aRb, RigidBody* bRb, const Vec2& anchorPoint)
 {
 	jacobian = MatMN(1, 6);
 	cachedLambda = VecN(1);
@@ -126,8 +125,7 @@ void JointConstraint::PostSolve()
 	cachedLambda[0] = std::clamp(cachedLambda[0], -10000.0f, 10000.0f);
 }
 
-PenetrationConstraint::PenetrationConstraint(const std::shared_ptr<RigidBody>& aRb, const std::shared_ptr<RigidBody>& bRb,
-                                             const Vec2& aCollisionPoint, const Vec2& bCollisionPoint, const Vec2& collisionNormal)
+PenetrationConstraint::PenetrationConstraint(RigidBody* aRb, RigidBody* bRb, const Vec2& aCollisionPoint, const Vec2& bCollisionPoint, const Vec2& collisionNormal)
 {
 	jacobian = MatMN(2, 6);
 	cachedLambda = VecN(2);
@@ -156,15 +154,15 @@ void PenetrationConstraint::PreSolve(const float dt)
 
 	jacobian.Zero();
 
-	jacobian.rows[0][0] = -n.x;			// A linear velocity.x
-	jacobian.rows[0][1] = -n.y;			// A linear velocity.y
+	jacobian.rows[0][0] = -n.x; // A linear velocity.x
+	jacobian.rows[0][1] = -n.y; // A linear velocity.y
 	jacobian.rows[0][2] = -ra.Cross(n); // A angular velocity
-	jacobian.rows[0][3] = n.x;			// B linear velocity.x
-	jacobian.rows[0][4] = n.y;			// B linear velocity.y
-	jacobian.rows[0][5] = rb.Cross(n);	// B angular velocity
+	jacobian.rows[0][3] = n.x; // B linear velocity.x
+	jacobian.rows[0][4] = n.y; // B linear velocity.y
+	jacobian.rows[0][5] = rb.Cross(n); // B angular velocity
 
 	friction = std::max(a->m_friction, b->m_friction);
-	if(friction > 0.0f)
+	if (friction > 0.0f)
 	{
 		const Vec2 t = n.Perpendicular(); // Tangent vector
 		jacobian.rows[1][0] = -t.x;
@@ -222,7 +220,7 @@ void PenetrationConstraint::Solve()
 	cachedLambda += lambda;
 	cachedLambda[0] = cachedLambda[0] < 0.0f ? 0.0f : cachedLambda[0];
 
-	if(friction > 0.0f)
+	if (friction > 0.0f)
 	{
 		const float maxFriction = cachedLambda[0] * friction;
 		cachedLambda[1] = std::clamp(cachedLambda[1], -maxFriction, maxFriction);

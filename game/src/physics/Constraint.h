@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include "MatMN.h"
 #include "Vec2.h"
 #include "VecN.h"
@@ -10,8 +8,8 @@ class RigidBody;
 
 struct Constraint
 {
-	std::shared_ptr<RigidBody> a;
-	std::shared_ptr<RigidBody> b;
+	RigidBody* a;
+	RigidBody* b;
 
 	Vec2 aPoint; // The anchor point in A's local space
 	Vec2 bPoint; // The anchor point in B's local space
@@ -39,7 +37,7 @@ protected:
 struct JointConstraint final : Constraint
 {
 public:
-	JointConstraint(const std::shared_ptr<RigidBody>& aRb, const std::shared_ptr<RigidBody>& bRb, const Vec2& anchorPoint);
+	JointConstraint(RigidBody* aRb, RigidBody* bRb, const Vec2& anchorPoint);
 	void PreSolve(float dt) override;
 	void Solve() override;
 	void PostSolve() override;
@@ -52,8 +50,7 @@ private:
 	float friction;
 
 public:
-	PenetrationConstraint(const std::shared_ptr<RigidBody>& aRb, const std::shared_ptr<RigidBody>& bRb, const Vec2& aCollisionPoint,
-	                      const Vec2& bCollisionPoint, const Vec2& collisionNormal);
+	PenetrationConstraint(RigidBody* aRb, RigidBody* bRb, const Vec2& aCollisionPoint, const Vec2& bCollisionPoint, const Vec2& collisionNormal);
 	void PreSolve(float dt) override;
 	void Solve() override;
 	void PostSolve() override;

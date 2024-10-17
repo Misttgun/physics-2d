@@ -5,8 +5,8 @@
 
 struct Contact
 {
-	std::shared_ptr<RigidBody> a;
-	std::shared_ptr<RigidBody> b;
+	RigidBody* a;
+	RigidBody* b;
 
 	Vec2 start;
 	Vec2 end;
@@ -15,7 +15,7 @@ struct Contact
 	float depth;
 };
 
-inline bool IsCollidingCircleCircle(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, std::vector<Contact>& outContacts)
+inline bool IsCollidingCircleCircle(RigidBody* a, RigidBody* b, std::vector<Contact>& outContacts)
 {
 	const CircleShape* aCircleShape = dynamic_cast<CircleShape*>(a->m_shape.get());
 	const CircleShape* bCircleShape = dynamic_cast<CircleShape*>(b->m_shape.get());
@@ -41,7 +41,7 @@ inline bool IsCollidingCircleCircle(const std::shared_ptr<RigidBody>& a, const s
 	return true;
 }
 
-inline bool IsCollidingPolygonPolygon(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, std::vector<Contact>& outContacts)
+inline bool IsCollidingPolygonPolygon(RigidBody* a, RigidBody* b, std::vector<Contact>& outContacts)
 {
 	const PolygonShape* aPolygonShape = dynamic_cast<PolygonShape*>(a->m_shape.get());
 	const PolygonShape* bPolygonShape = dynamic_cast<PolygonShape*>(b->m_shape.get());
@@ -127,7 +127,7 @@ inline bool IsCollidingPolygonPolygon(const std::shared_ptr<RigidBody>& a, const
 	return true;
 }
 
-inline bool IsCollidingPolygonCircle(const std::shared_ptr<RigidBody>& polygon, const std::shared_ptr<RigidBody>& circle, std::vector<Contact>& outContacts)
+inline bool IsCollidingPolygonCircle(RigidBody* polygon, RigidBody* circle, std::vector<Contact>& outContacts)
 {
 	const PolygonShape* polygonShape = dynamic_cast<PolygonShape*>(polygon->m_shape.get());
 	const CircleShape* circleShape = dynamic_cast<CircleShape*>(circle->m_shape.get());
@@ -238,7 +238,7 @@ inline bool IsCollidingPolygonCircle(const std::shared_ptr<RigidBody>& polygon, 
 	return true;
 }
 
-inline bool IsColliding(const std::shared_ptr<RigidBody>& a, const std::shared_ptr<RigidBody>& b, std::vector<Contact>& outContacts)
+inline bool IsColliding(RigidBody* a, RigidBody* b, std::vector<Contact>& outContacts)
 {
 	const bool aIsCircle = a->m_shape->GetType() == CIRCLE;
 	const bool bIsCircle = b->m_shape->GetType() == CIRCLE;

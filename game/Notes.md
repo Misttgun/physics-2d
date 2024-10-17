@@ -43,3 +43,7 @@
 - We first integrate all the forces applied to the rigidbodies.
 - We then create a penetration constraint for every collision based on the contact information.
 - We solve all the constraints (Penetration and Joint) and integrate all the velocities.
+
+## Memory Management
+- I decided to use a custom memory allocator instead of shared_ptr for Rigidbody and JointContraint
+- I implemented an Arena Allocator based on [this article](https://www.gingerbill.org/article/2019/02/08/memory-allocation-strategies-002/).
