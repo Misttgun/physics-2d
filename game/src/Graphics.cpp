@@ -126,6 +126,11 @@ void Graphics::DrawTexture(const Vec2 &pos, const float width, const float heigh
 	RLAPI::DrawTexturePro(texture, srcRect, destRect, origin, rotationDeg, WHITE);
 }
 
+void Graphics::DrawText(const std::string& text, const Color& color)
+{
+	DrawText(text, color);
+}
+
 void Graphics::CloseWindow()
 {
 	RLAPI::CloseWindow();

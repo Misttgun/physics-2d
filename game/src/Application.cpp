@@ -20,8 +20,8 @@ void Application::Setup()
 
 	LoadResources();
 
-	m_rbArena.Init(8U * MEGABYTE);
-	m_constraintArena.Init(8U * KILOBYTE);
+	m_rbArena.Init(MEGABYTE);
+	m_constraintArena.Init(2U * KILOBYTE);
 
 	// Add bird
 	const auto bird = CreateRigidBody(CircleShape(30.0f), 100, Graphics::Height() - 180, 3.0f);
@@ -183,9 +183,27 @@ void Application::Render() const
 
 	Graphics::ClearScreen({15, 7, 33, 255});
 
-	// Draw background texture
-	Graphics::DrawTexture(Vec2(static_cast<float>(Graphics::Width()) / 2.0f, static_cast<float>(Graphics::Height()) / 2.0f),
-	                      static_cast<float>(Graphics::Width()), static_cast<float>(Graphics::Height()), 0.0f, m_resourceManager->GetTexture("background"));
+	if (m_debug == false)
+	{
+		// Draw background texture
+		Graphics::DrawTexture(Vec2(static_cast<float>(Graphics::Width()) / 2.0f, static_cast<float>(Graphics::Height()) / 2.0f),
+		                      static_cast<float>(Graphics::Width()), static_cast<float>(Graphics::Height()), 0.0f, m_resourceManager->GetTexture("background"));
+	}
+
+	if (m_debug)
+	{
+		constexpr int posX = 20;
+		DrawText(TextFormat("FPS: %i", static_cast<int>(1 / GetFrameTime())), posX, 10, 10, GREEN);
+		DrawText(TextFormat("FrameTime: %02.02f ms", GetFrameTime() * 1000), posX, 25, 10, GREEN);
+
+		const float rbMemUsed = static_cast<float>(m_rbArena.Used()) / MEGABYTE;
+		const float rbMemCapacity = static_cast<float>(m_rbArena.Capacity()) / MEGABYTE;
+		DrawText(TextFormat("RigidBody %.02fMB/%.02fMB", rbMemUsed, rbMemCapacity), posX, 40, 10, WHITE);
+
+		const float constraintMemUsed = static_cast<float>(m_constraintArena.Used()) / KILOBYTE;
+		const float constraintMemCapacity = static_cast<float>(m_constraintArena.Capacity()) / KILOBYTE;
+		DrawText(TextFormat("RigidBody %.02fKB/%.02fKB", constraintMemUsed, constraintMemCapacity), posX, 55, 10, WHITE);
+	}
 
 	const auto bodies = m_world->GetBodies();
 
@@ -270,6 +288,7 @@ RigidBody* Application::CreateRigidBody(const Shape& shape, const int x, const i
 {
 	constexpr size_t size = sizeof(RigidBody);
 	const auto rb = static_cast<RigidBody*>(m_rbArena.Allocate(size));
+
 	*rb = RigidBody(shape, x, y, mass);
 
 	return rb;

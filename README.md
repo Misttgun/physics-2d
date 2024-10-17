@@ -15,3 +15,4 @@ This is a simple 2D physics engine using C++ and Raylib.
 - Press **Left Mouse Button** to spawn a circle at mouse position
 - Press **Right Mouse Button** to spawn a box at mouse position
 - **WASD** to control the Angry Bird
+- Press **F2** to show the Debug view

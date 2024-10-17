@@ -4,7 +4,7 @@
 #include <cassert>
 #include <cstdlib>
 
-Arena::Arena() : m_bufferLen{0}, m_prevOffset{0}, m_currOffset{0} {}
+Arena::Arena() : m_bufferLen{0}, m_currOffset{0} {}
 
 void Arena::Init(const std::size_t totalSize)
 {
@@ -14,7 +14,6 @@ void Arena::Init(const std::size_t totalSize)
 	m_bufferLen = totalSize;
 	m_buffer = new unsigned char[m_bufferLen];
 	m_currOffset = 0;
-	m_prevOffset = 0;
 }
 
 void* Arena::Allocate(const std::size_t size, const std::size_t alignment)
@@ -28,7 +27,6 @@ void* Arena::Allocate(const std::size_t size, const std::size_t alignment)
 	if (offset + size <= m_bufferLen)
 	{
 		void* ptr = &m_buffer[offset];
-		m_prevOffset = offset;
 		m_currOffset = offset + size;
 
 		// Zero the new memory by default
@@ -49,7 +47,6 @@ Arena::~Arena()
 
 void Arena::FreeAll()
 {
-	m_prevOffset = 0;
 	m_currOffset = 0;
 }
 
