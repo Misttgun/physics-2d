@@ -41,6 +41,13 @@ inline bool IsCollidingCircleCircle(RigidBody* a, RigidBody* b, std::vector<Cont
 	return true;
 }
 
+inline bool BroadPhaseCollisionCheck(const Vec2& posA, const float radiusA, const Vec2& posB, const float radiusB)
+{
+	const Vec2 ab = posB - posA;
+	const float radiusSum = radiusA + radiusB;
+	return ab.MagnitudeSquared() <= (radiusSum * radiusSum);
+}
+
 inline bool IsCollidingPolygonPolygon(RigidBody* a, RigidBody* b, std::vector<Contact>& outContacts)
 {
 	const PolygonShape* aPolygonShape = dynamic_cast<PolygonShape*>(a->m_shape.get());

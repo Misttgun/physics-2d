@@ -34,6 +34,7 @@ RigidBody::RigidBody(const Shape& shape, const int x, const int y, const float m
 		m_invInertia = 0.0f;
 
 	m_shape->UpdateVertices(m_position, m_rotation);
+	UpdateBoundingRadius();
 }
 
 bool RigidBody::IsStatic() const
@@ -131,4 +132,27 @@ void RigidBody::IntegrateVelocities(const float dt)
 void RigidBody::SetTexture(const std::string& textureId)
 {
 	m_textureId = textureId;
+}
+
+void RigidBody::UpdateBoundingRadius()
+{
+	if (m_shape->GetType() == CIRCLE)
+	{
+		const auto* circleShape = dynamic_cast<CircleShape*>(m_shape.get());
+		m_radius = circleShape->m_radius;
+	}
+	else if (m_shape->GetType() == POLYGON || m_shape->GetType() == BOX)
+	{
+		const auto* polygonShape = dynamic_cast<PolygonShape*>(m_shape.get());
+		float maxDistance = 0.0f;
+		
+		// Find the furthest vertex from the center
+		for (const auto& vertex : polygonShape->m_worldVertices)
+		{
+			const float distance = (vertex - m_position).MagnitudeSquared();
+			maxDistance = std::max(maxDistance, distance);
+		}
+		
+		m_radius = sqrt(maxDistance);
+	}
 }

@@ -9,35 +9,33 @@
 class RigidBody
 {
 public:
-	
-	// Linear motion
-	Vec2 m_position;
-	Vec2 m_velocity;
-	Vec2 m_acceleration;
-
-	// Angular motion
-	float m_rotation;
-	float m_angularVelocity;
-	float m_angularAcceleration;
-
-	// Forces and Torque
-	Vec2 m_sumForces;
-	float m_sumTorque;
-
-	// Mass and Moment of Inertia
+	// Mass properties
 	float m_mass;
 	float m_invMass;
 	float m_inertia;
 	float m_invInertia;
 
-	// Coefficient of restitution (elasticity)
+	// Physical properties
 	float m_restitution;
-
-	// Coefficient of friction
 	float m_friction;
 
-	std::unique_ptr<Shape> m_shape;
+	// Linear motion
+	Vec2 m_position;
+	Vec2 m_velocity;
+	Vec2 m_acceleration;
+	Vec2 m_sumForces;
 
+	// Angular motion
+	float m_rotation;
+	float m_angularVelocity;
+	float m_angularAcceleration;
+	float m_sumTorque;
+
+	// Broadphase
+	float m_radius; // Circle radius for the broadphase check
+
+	// Dynamic allocations
+	std::unique_ptr<Shape> m_shape;
 	std::string m_textureId;
 
 	RigidBody(const Shape& shape, int x, int y, float mass = 0.0f);
@@ -53,11 +51,14 @@ public:
 	[[nodiscard]] Vec2 WorldToLocal(const Vec2& point) const;
 
 	void ApplyImpulseLinear(const Vec2& j);
-    void ApplyImpulseAngular(float j);
-    void ApplyImpulseAtPoint(const Vec2& j, const Vec2& r);
+	void ApplyImpulseAngular(float j);
+	void ApplyImpulseAtPoint(const Vec2& j, const Vec2& r);
 
 	void IntegrateForces(float dt);
 	void IntegrateVelocities(float dt);
 
 	void SetTexture(const std::string& textureId);
+
+	// Broad phase methods
+	void UpdateBoundingRadius();
 };

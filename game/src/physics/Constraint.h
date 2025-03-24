@@ -29,9 +29,9 @@ struct Constraint
 	virtual void PostSolve() {}
 
 protected:
-	MatMN jacobian;
-	VecN cachedLambda;
 	float bias;
+	VecN cachedLambda;
+	MatMN jacobian;
 };
 
 struct JointConstraint final : Constraint
@@ -46,8 +46,8 @@ public:
 struct PenetrationConstraint final : Constraint
 {
 private:
-	Vec2 normal;
 	float friction;
+	Vec2 normal;
 
 public:
 	PenetrationConstraint(RigidBody* aRb, RigidBody* bRb, const Vec2& aCollisionPoint, const Vec2& bCollisionPoint, const Vec2& collisionNormal);

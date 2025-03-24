@@ -60,11 +60,20 @@ void World::Update(const float dt) const
 	for (const auto& body : m_bodies)
 		body->IntegrateForces(dt);
 
+	// Update bounding circles for broad phase
+	for (const auto& body : m_bodies)
+		body->UpdateBoundingRadius();
+
 	// Check all the rigid bodies with the other rigid bodies for collision
 	for (std::size_t i = 0; i < m_bodies.size() - 1; i++)
 	{
 		for (std::size_t j = i + 1; j < m_bodies.size(); j++)
 		{
+			// Broad phase check first
+			if (BroadPhaseCollisionCheck(m_bodies[i]->m_position, m_bodies[i]->m_radius, m_bodies[j]->m_position, m_bodies[j]->m_radius) == false)
+				continue;
+
+			// If broad phase passes, do narrow phase check
 			std::vector<Contact> contacts;
 			if (IsColliding(m_bodies[i], m_bodies[j], contacts))
 			{
