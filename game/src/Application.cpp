@@ -202,7 +202,7 @@ void Application::Render() const
 
 		const float constraintMemUsed = static_cast<float>(m_constraintArena.Used()) / KILOBYTE;
 		const float constraintMemCapacity = static_cast<float>(m_constraintArena.Capacity()) / KILOBYTE;
-		DrawText(TextFormat("RigidBody %.02fKB/%.02fKB", constraintMemUsed, constraintMemCapacity), posX, 55, 10, WHITE);
+		DrawText(TextFormat("Constraint %.02fKB/%.02fKB", constraintMemUsed, constraintMemCapacity), posX, 55, 10, WHITE);
 	}
 
 	const auto bodies = m_world->GetBodies();
