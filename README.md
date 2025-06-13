@@ -2,17 +2,15 @@
 
 Visual Studio 2022 users should run
 
-    premake-VisualStudio.bat
+    GenerateProjects.bat
 	
 This will generate a Visual Studio project.
 
 # Features
-This is a simple 2D physics engine using C++ and Raylib.
-- Rigidbody physics (collision detection and resolution)
-- Contraints (Joint and penetration constraint)
+This is a simple 2D C++ game engine using SDL2.
+- Small and simple ECS
+- Simple event system
 
 ## Inputs
-- Press **Left Mouse Button** to spawn a circle at mouse position
-- Press **Right Mouse Button** to spawn a box at mouse position
-- **WASD** to control the Angry Bird
-- Press **F2** to show the Debug view
+- **WASD** to control the Helicopter
+- Press **SPACE** to shoot
